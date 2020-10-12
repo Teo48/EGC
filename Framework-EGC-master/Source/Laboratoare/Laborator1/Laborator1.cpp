@@ -63,8 +63,8 @@ void Laborator1::Update(float deltaTimeSeconds)
 	
 	// render 3rd object
 	RenderMesh(meshes[chosenMeshObj], glm::vec3(get<0>(coordinates), 
-												get<1>(coordinates), 
-												get<2>(coordinates)));
+						get<1>(coordinates), 
+						get<2>(coordinates)));
 }
 
 void Laborator1::FrameEnd()
