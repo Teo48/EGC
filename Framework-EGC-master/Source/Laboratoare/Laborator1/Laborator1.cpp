@@ -46,8 +46,8 @@ void Laborator1::Update(float deltaTimeSeconds)
 
 	// sets the clear color for the color buffer
 	glClearColor(get<0>(pixel),
-				get<1>(pixel),
-				get<2>(pixel), 1);
+			get<1>(pixel),
+			get<2>(pixel), 1);
 
 	// clears the color buffer (using the previously set color) and depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
