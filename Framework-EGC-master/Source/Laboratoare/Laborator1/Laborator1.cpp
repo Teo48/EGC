@@ -45,9 +45,7 @@ void Laborator1::Update(float deltaTimeSeconds)
 	glm::ivec2 resolution = window->props.resolution;
 
 	// sets the clear color for the color buffer
-	glClearColor(get<0>(pixel),
-				get<1>(pixel),
-				get<2>(pixel), 1);
+	glClearColor(pixel.r, pixel.g, pixel.b, 1);
 
 	// clears the color buffer (using the previously set color) and depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -62,9 +60,9 @@ void Laborator1::Update(float deltaTimeSeconds)
 	RenderMesh(meshes["box"], glm::vec3(-1, 0.5f, 0));
 	
 	// render 3rd object
-	RenderMesh(meshes[chosenMeshObj], glm::vec3(get<0>(coordinates), 
-												get<1>(coordinates), 
-												get<2>(coordinates)));
+	RenderMesh(meshes[chosenMeshObj], glm::vec3(coordinates.x, 
+												coordinates.y,
+												coordinates.z));
 }
 
 void Laborator1::FrameEnd()
@@ -81,27 +79,27 @@ void Laborator1::OnInputUpdate(float deltaTime, int mods)
 
 	if (!window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT)) {
 		if (window->KeyHold(GLFW_KEY_W)) {
-			get<2>(coordinates) -= MOVEMENT_SPEED * deltaTime;
+			coordinates.z -= MOVEMENT_SPEED * deltaTime;
 		}
 
 		if (window->KeyHold(GLFW_KEY_S)) {
-			get<2>(coordinates) += MOVEMENT_SPEED * deltaTime;
+			coordinates.z += MOVEMENT_SPEED * deltaTime;
 		}
 
 		if (window->KeyHold(GLFW_KEY_D)) {
-			get<0>(coordinates) += MOVEMENT_SPEED * deltaTime;
+			coordinates.x += MOVEMENT_SPEED * deltaTime;
 		}
 
 		if (window->KeyHold(GLFW_KEY_A)) {
-			get<0>(coordinates) -= MOVEMENT_SPEED * deltaTime;
+			coordinates.x -= MOVEMENT_SPEED * deltaTime;
 		}
 
 		if (window->KeyHold(GLFW_KEY_E)) {
-			get<1>(coordinates) += MOVEMENT_SPEED * deltaTime;
+			coordinates.y += MOVEMENT_SPEED * deltaTime;
 		}
 
 		if (window->KeyHold(GLFW_KEY_Q)) {
-			get<1>(coordinates) -= MOVEMENT_SPEED * deltaTime;
+			coordinates.y -= MOVEMENT_SPEED * deltaTime;
 		}
 	}
 };
@@ -111,9 +109,9 @@ void Laborator1::OnKeyPress(int key, int mods)
 	// add key press event
 	if (key == GLFW_KEY_F) {
 		// update the clear color randomly
-		get<0>(pixel) = randomColor();
-		get<1>(pixel) = randomColor();
-		get<2>(pixel) = randomColor();
+		pixel.r = randomColor();
+		pixel.g = randomColor();
+		pixel.b = randomColor();
 	}
 
 	if (key == GLFW_KEY_R) {

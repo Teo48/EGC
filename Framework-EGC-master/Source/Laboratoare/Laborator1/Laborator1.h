@@ -14,8 +14,8 @@ class Laborator1 : public SimpleScene
 		void Init() override;
 
 	private:
-		std::tuple<GLclampf, GLclampf, GLclampf> pixel;
-		std::tuple<GLfloat, GLfloat, GLfloat> coordinates;
+		glm::vec3 pixel;
+		glm::vec3 coordinates;
 		std::string objMeshList[NUM_OBJECTS] = {"box", "sphere", "teapot"};
 		std::string chosenMeshObj = "box";
 		int cntMeshObj = 1;
