@@ -3,6 +3,8 @@
 #include <Component/SimpleScene.h>
 #include <Core/Engine.h>
 
+constexpr GLdouble radians = 2 * glm::pi<GLdouble>();
+
 class Laborator2 : public SimpleScene
 {
 	public:
@@ -12,6 +14,7 @@ class Laborator2 : public SimpleScene
 		void Init() override;
 
 	private:
+		int N = 10;
 		Mesh* CreateMesh(const char *name, const std::vector<VertexFormat>& vertices, const std::vector<unsigned short>& indices);
 
 		void FrameStart() override;
@@ -26,6 +29,8 @@ class Laborator2 : public SimpleScene
 		void OnMouseBtnRelease(int mouseX, int mouseY, int button, int mods) override;
 		void OnMouseScroll(int mouseX, int mouseY, int offsetX, int offsetY) override;
 		void OnWindowResize(int width, int height) override;
+		glm::vec3 randomColor();
+		GLclampf getRandom();
 
 	protected:
 		GLenum cullFace;

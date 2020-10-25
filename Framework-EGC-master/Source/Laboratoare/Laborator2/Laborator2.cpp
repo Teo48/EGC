@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <iostream>
-
+#include <time.h>
 #include <Core/Engine.h>
 
 using namespace std;
@@ -18,6 +18,7 @@ Laborator2::~Laborator2()
 
 void Laborator2::Init()
 {
+	srand(time(nullptr));
 	cullFace = GL_BACK;
 	polygonMode = GL_FILL;
 
@@ -32,16 +33,32 @@ void Laborator2::Init()
 	{
 		vector<VertexFormat> vertices
 		{
-			VertexFormat(glm::vec3(-1, -1,  1), glm::vec3(0, 1, 1)),
-			// TODO: Complete the information for the cube
+			VertexFormat(glm::vec3(-1, -1, 1), randomColor()),
+			VertexFormat(glm::vec3(0, -1, 1), randomColor()),
+			VertexFormat(glm::vec3(-1, 0, 1), randomColor()),
+			VertexFormat(glm::vec3(0, 0, 1), randomColor()),
+			VertexFormat(glm::vec3(-1, -1, 0), randomColor()),
+			VertexFormat(glm::vec3(0, -1, 0), randomColor()),
+			VertexFormat(glm::vec3(-1, 0, 0), randomColor()),
+			VertexFormat(glm::vec3(0, 0, 0), randomColor())
 		};
 
 		vector<unsigned short> indices =
 		{
 			0, 1, 2,	// indices for first triangle
 			1, 3, 2,	// indices for second triangle
-			// TODO: Complete indices data
+			2, 3, 7,
+			2, 7, 6,
+			1, 7, 3,
+			1, 5, 7,
+			6, 7, 4,
+			7, 5, 4,
+			0, 4, 1,
+			1, 4, 5,
+			2, 6, 4,
+			0, 2, 4
 		};
+
 
 		meshes["cube1"] = new Mesh("generated cube 1");
 		meshes["cube1"]->InitFromData(vertices, indices);
@@ -49,23 +66,72 @@ void Laborator2::Init()
 		// Create a new mesh from buffer data
 		Mesh *cube = CreateMesh("cube3", vertices, indices);
 	}
+	
+	// Create tetrahedron
+	{
+		vector<VertexFormat> vertices
+		{
+			VertexFormat(glm::vec3(1, 1, 1), randomColor()),
+			VertexFormat(glm::vec3(3, 1, 3), randomColor()),
+			VertexFormat(glm::vec3(5, 1, 1), randomColor()),
+			VertexFormat(glm::vec3(3, 3, 3), randomColor()),
+		};
+
+		vector<unsigned short> indices =
+		{
+			0, 1, 3,
+			0, 2, 1,
+			0, 3, 2,
+			1, 2, 3
+		};
+
+		Mesh* tetrahedron = CreateMesh("tetrahedron", vertices, indices);
+	}
+
+	// Create square
+	{
+		vector<VertexFormat> vertices
+		{
+			VertexFormat(glm::vec3(0, 0, 0), randomColor()),
+			VertexFormat(glm::vec3(0, 1, 0), randomColor()),
+			VertexFormat(glm::vec3(1, 0, 0), randomColor()),
+			VertexFormat(glm::vec3(1, 1, 0), randomColor()),
+		};
+
+		vector<unsigned short> indices =
+		{
+			0, 2, 1,
+			1, 3, 2
+		};
+
+		Mesh* square = CreateMesh("square", vertices, indices);
+	}
+
+	
 }
 
 Mesh* Laborator2::CreateMesh(const char *name, const std::vector<VertexFormat> &vertices, const std::vector<unsigned short> &indices)
 {
 	unsigned int VAO = 0;
 	// TODO: Create the VAO and bind it
-
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
+	
 	// TODO: Create the VBO and bind it
 	unsigned int VBO = 0;
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
 	// TODO: Send vertices data into the VBO buffer
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices[0]) * vertices.size(), &vertices[0], GL_STATIC_DRAW);
 
 	// TODO: Crete the IBO and bind it
 	unsigned int IBO = 0;
+	glGenBuffers(1, &IBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 
 	// TODO: Send indices data into the IBO buffer
-
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices[0]) * indices.size(), &indices[0], GL_STATIC_DRAW);
 	// ========================================================================
 	// This section describes how the GPU Shader Vertex Shader program receives data
 	// It will be learned later, when GLSL shaders will be introduced
@@ -90,7 +156,7 @@ Mesh* Laborator2::CreateMesh(const char *name, const std::vector<VertexFormat> &
 	// ========================================================================
 
 	// TODO: Unbind the VAO
-
+	glBindVertexArray(0);
 	// Check for OpenGL errors
 	CheckOpenGLError();
 
@@ -119,16 +185,60 @@ void Laborator2::Update(float deltaTimeSeconds)
 	glPolygonMode(GL_FRONT_AND_BACK, polygonMode);
 
 	// TODO: Enable face culling
-
+	glEnable(GL_CULL_FACE);
 	// TODO: Set face custom culling. Use the "cullFace" variable
-
+	glCullFace(cullFace);
 	// render an object using face normals for color
 	RenderMesh(meshes["box"], shaders["VertexNormal"], glm::vec3(0, 0.5f, -1.5f), glm::vec3(0.75f));
 
 	// render an object using colors from vertex
 	RenderMesh(meshes["cube1"], shaders["VertexColor"], glm::vec3(-1.5f, 0.5f, 0), glm::vec3(0.25f));
 
+	// render the same cube generated with VAO, VBO and IBO.
+	RenderMesh(meshes["cube3"], shaders["VertexColor"], glm::vec3(-3.f, 1.f, 0), glm::vec3(0.25f));
+
+	// render a tetrahedron
+	RenderMesh(meshes["tetrahedron"], shaders["VertexColor"], glm::vec3(1.f, -0.5f, -0.75f), glm::vec3(0.75f));
+
+	// render a square
+	RenderMesh(meshes["square"], shaders["VertexColor"], glm::vec3(0, 0.5f, 2.5f), glm::vec3(0.75f));
+	
+	// Bonus: render a circle using triangle_fan
+	// The circle is rendered by using 10 triangles, but if you press "R" the number increases.
+	// Also, you can decrease the number of triangles by pressing "T".
+	{
+		vector<VertexFormat> vertices;
+		vector<unsigned short> indices;
+		
+		vertices.emplace_back(glm::vec3(0, 0, 0), glm::vec3(1, 1, 1));
+		
+		for (int i = 0; i < N; ++i)
+		{
+			auto u = radians * i / N;
+			glm::vec3 position = glm::vec3(glm::cos(u), glm::sin(u), 0);
+
+			if (i & 1) 
+			{
+				vertices.emplace_back(position, glm::vec4(0, 0, 0, 1));
+			}
+			else 
+			{
+				vertices.emplace_back(position, glm::vec4(1, 1, 1, 1));
+			}
+
+			indices.emplace_back(i);
+		}
+
+		indices.emplace_back(N);
+		indices.emplace_back(1);
+
+		CreateMesh("disc", vertices, indices);
+		meshes["disc"]->SetDrawMode(GL_TRIANGLE_FAN);
+	}
+
+	RenderMesh(meshes["disc"], shaders["VertexColor"], glm::vec3(0.f, 2.f, 1.5f));
 	// TODO: Disable face culling
+	glDisable(GL_CULL_FACE);
 }
 
 void Laborator2::FrameEnd()
@@ -161,6 +271,21 @@ void Laborator2::OnKeyPress(int key, int mods)
 			break;
 		}
 	}
+
+	if (key == GLFW_KEY_F2)
+	{
+		cullFace ^= GL_FRONT ^ GL_BACK;
+	}
+
+	if (key == GLFW_KEY_R) 
+	{
+		++N;
+	}
+
+	if (key == GLFW_KEY_T) 
+	{
+		--N;
+	}
 }
 
 void Laborator2::OnKeyRelease(int key, int mods)
@@ -189,4 +314,14 @@ void Laborator2::OnMouseScroll(int mouseX, int mouseY, int offsetX, int offsetY)
 
 void Laborator2::OnWindowResize(int width, int height)
 {
+}
+
+glm::vec3 Laborator2::randomColor()
+{
+	return glm::vec3(getRandom(), getRandom(), getRandom());
+}
+
+inline GLclampf Laborator2::getRandom()
+{
+	return ((GLclampf)rand() / (RAND_MAX));
 }
