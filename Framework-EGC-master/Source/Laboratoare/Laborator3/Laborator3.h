@@ -4,6 +4,9 @@
 #include <string>
 #include <Core/Engine.h>
 
+constexpr float MOVE_SPEED = 0.5f;
+constexpr float squareSide = 100.f;
+
 class Laborator3 : public SimpleScene
 {
 	public:
@@ -13,10 +16,11 @@ class Laborator3 : public SimpleScene
 		void Init() override;
 
 	private:
+		bool up = false;
 		void FrameStart() override;
 		void Update(float deltaTimeSeconds) override;
 		void FrameEnd() override;
-
+		
 		void OnInputUpdate(float deltaTime, int mods) override;
 		void OnKeyPress(int key, int mods) override;
 		void OnKeyRelease(int key, int mods) override;
@@ -31,4 +35,8 @@ class Laborator3 : public SimpleScene
 		float translateX, translateY;
 		float scaleX, scaleY;
 		float angularStep;
+		long long rotateCounter = 0;
+		bool leftRotate = true;
+		long long scaleCounter = 0;
+		bool upScale = true;
 };

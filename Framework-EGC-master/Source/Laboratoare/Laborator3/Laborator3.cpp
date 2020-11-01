@@ -28,7 +28,6 @@ void Laborator3::Init()
 	GetCameraInput()->SetActive(false);
 
 	glm::vec3 corner = glm::vec3(0, 0, 0);
-	float squareSide = 100;
 
 	// compute coordinates of square center
 	float cx = corner.x + squareSide / 2;
@@ -49,10 +48,10 @@ void Laborator3::Init()
 	Mesh* square1 = Object2D::CreateSquare("square1", corner, squareSide, glm::vec3(1, 0, 0), true);
 	AddMeshToList(square1);
 	
-	Mesh* square2 = Object2D::CreateSquare("square2", corner, squareSide, glm::vec3(0, 1, 0));
+	Mesh* square2 = Object2D::CreateSquare("square2", corner, squareSide, glm::vec3(0, 1, 0), true);
 	AddMeshToList(square2);
 
-	Mesh* square3 = Object2D::CreateSquare("square3", corner, squareSide, glm::vec3(0, 0, 1));
+	Mesh* square3 = Object2D::CreateSquare("square3", corner, squareSide, glm::vec3(0, 0, 1), true);
 	AddMeshToList(square3);
 }
 
@@ -70,24 +69,99 @@ void Laborator3::FrameStart()
 void Laborator3::Update(float deltaTimeSeconds)
 {
 	// TODO: update steps for translation, rotation, scale, in order to create animations
-	
-	modelMatrix = glm::mat3(1);
-	modelMatrix *= Transform2D::Translate(150, 250);
+	glm::ivec2 resolution = window->GetResolution();
+
 	// TODO: create animations by multiplying current transform matrix with matrices from Transform 2D
+	{	
+		modelMatrix = glm::mat3(1);
+		modelMatrix = Transform2D::Translate(150, 250);
+
+	if (up)
+	{
+		translateY += MOVE_SPEED * deltaTimeSeconds * resolution.x;
+		modelMatrix *= Transform2D::Translate(translateX, translateY);
+
+		if (translateY > resolution.y * 0.5f)
+		{
+			up = false;
+		}
+	}
+	else
+	{
+		translateY -= MOVE_SPEED * deltaTimeSeconds * resolution.x;
+		modelMatrix *= Transform2D::Translate(translateX, translateY);
+
+		if (translateY < -resolution.y * 0.4f)
+		{
+			up = true;
+		}
+	}
 
 	RenderMesh2D(meshes["square1"], shaders["VertexColor"], modelMatrix);
+	}
 
-	modelMatrix = glm::mat3(1);
-	modelMatrix *= Transform2D::Translate(400, 250);
 	//TODO create animations by multiplying current transform matrix with matrices from Transform 2D
+	{
+		modelMatrix = glm::mat3(1);
+		modelMatrix *= Transform2D::Translate(400, 250);
+		modelMatrix *= Transform2D::Translate(squareSide / 2, squareSide / 2);
+
+		if (leftRotate)
+		{
+			angularStep += deltaTimeSeconds;
+			if (++rotateCounter == 256)
+			{
+				leftRotate = false;
+			}
+		}
+
+		if (!leftRotate)
+		{
+			angularStep -= deltaTimeSeconds;
+
+			if (--rotateCounter == -256)
+			{
+				leftRotate = true;
+			}
+		}
+
+		modelMatrix *= Transform2D::Rotate(angularStep);
+		modelMatrix *= Transform2D::Translate(-squareSide / 2, -squareSide / 2);
+		RenderMesh2D(meshes["square2"], shaders["VertexColor"], modelMatrix);
+	}
+
+	{
+		//TODO create animations by multiplying current transform matrix with matrices from Transform 2D
+		modelMatrix = glm::mat3(1);
+		modelMatrix *= Transform2D::Translate(650, 250);
+		modelMatrix *= Transform2D::Translate(squareSide / 2, squareSide / 2);
 	
-	RenderMesh2D(meshes["square2"], shaders["VertexColor"], modelMatrix);
+		if (upScale) 
+		{	
+			scaleX += 2 * deltaTimeSeconds;
+			scaleY += 2 * deltaTimeSeconds;
+			
+			if (++scaleCounter == 16)
+			{
+				upScale = false;
+			}
+		}
+	
+		if (!upScale)
+		{	
+			scaleX -= 2 * deltaTimeSeconds;
+			scaleY -= 2 * deltaTimeSeconds;
+			if (--scaleCounter == -32)
+			{
+				upScale = true;
+			}
+		}
 
-	modelMatrix = glm::mat3(1);
-	modelMatrix *= Transform2D::Translate(650, 250);
+		modelMatrix *= Transform2D::Scale(scaleX, scaleY);
+		modelMatrix *= Transform2D::Translate(-squareSide / 2, -squareSide / 2);
 
-	//TODO create animations by multiplying current transform matrix with matrices from Transform 2D
-	RenderMesh2D(meshes["square3"], shaders["VertexColor"], modelMatrix);
+		RenderMesh2D(meshes["square3"], shaders["VertexColor"], modelMatrix);
+	}
 }
 
 void Laborator3::FrameEnd()
