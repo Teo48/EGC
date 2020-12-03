@@ -12,6 +12,8 @@ uniform mat4 Model;
 uniform mat4 View;
 uniform mat4 Projection;
 uniform float Clock;
+uniform int Collide;
+uniform int Color;
 
 // TODO: output values to fragment shader
 out vec3 frag_position;
@@ -21,16 +23,18 @@ out vec3 frag_color;
 
 void main()
 {
-	// TODO: send output to fragment shader
 	frag_position = v_position;
 	frag_normal = v_normal;
 	frag_texture = v_texture;
-	frag_color = v_color + vec3(sin(Clock), 
-								cos(Clock), 
-								sin(Clock) * sin(Clock) + 2 * sin(Clock) * cos(Clock) + cos(Clock) * cos(Clock));
 
-	// TODO: compute gl_Position
-	// Modific pozitia dupa functia: (sin(Clock) + cos(Clock))^2
-	gl_Position = Projection * (View + mat4(sin(Clock) * sin(Clock)) + mat4(2 * cos(Clock) * sin(Clock)) + 
-									   mat4(cos(Clock) * cos(Clock))) * Model * vec4(v_position, 1.0);
+	if (frag_position.y >= 0.15f) {
+		frag_color = vec3(1.f, 0.f, 0.13f);
+	} else if (frag_position.y >= 0.f && frag_position.y < 0.15f) {
+		frag_color = vec3(0.f, 0.f, 0.f);
+	} else if (frag_position.y < 0.f) {
+		//frag_color = vec3(0.f, 0.4667f, 1.f);
+		frag_color = vec3(1.f, 1.f, 1.f);
+	}
+
+	gl_Position = Projection * View * Model * vec4(v_position, 1.0);
 }

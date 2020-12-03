@@ -24,6 +24,16 @@ class Laborator4 : public SimpleScene
 		void OnWindowResize(int width, int height) override;
 
 	protected:
+		float cube[21] = { 2.5f, 0.5f, 1.5f,
+						2.43f, 0.57f, 1.5f,
+						2.36f, 0.64f, 1.5f,
+						2.57f, 0.43f, 1.5f,
+						2.5f, 0.36f, 1.5f,
+						2.43f, 0.29f, 1.5f,
+						2.36f, 0.22f, 1.5f
+		};
+		float angle = 0.78f;
+		float new_angle = 0.78f;
 		glm::mat4 modelMatrix;
 		float translateX, translateY, translateZ;
 		float scaleX, scaleY, scaleZ;

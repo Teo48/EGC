@@ -60,7 +60,7 @@ void Laborator1::Update(float deltaTimeSeconds)
 	RenderMesh(meshes["box"], glm::vec3(-1, 0.5f, 0));
 	
 	// render 3rd object
-	RenderMesh(meshes[chosenMeshObj], glm::vec3(coordinates.x, 
+	RenderMesh(meshes[chosenMeshObj], glm::vec3(coordinates.x,
 												coordinates.y,
 												coordinates.z));
 }

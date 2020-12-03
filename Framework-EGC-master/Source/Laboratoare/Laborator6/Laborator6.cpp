@@ -86,7 +86,8 @@ Mesh* Laborator6::CreateMesh(const char *name, const std::vector<VertexFormat> &
 
 	// ========================================================================
 	// This section describes how the GPU Shader Vertex Shader program receives data
-
+	// Pentru 6, e la fel ca la 5, daca schimb pipe-urile 1 si 3 sunt alterate culorile.
+	// Am modificat in glVertexAttribPointer primul parametu pentru a testa
 	// set vertex position attribute
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexFormat), 0);
@@ -170,18 +171,29 @@ void Laborator6::RenderSimpleMesh(Mesh *mesh, Shader *shader, const glm::mat4 & 
 	glUseProgram(shader->program);
 
 	// TODO : get shader location for uniform mat4 "Model"
+	auto modelLocation = glGetUniformLocation(shader->program, "Model");
 
 	// TODO : set shader uniform "Model" to modelMatrix
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
 	// TODO : get shader location for uniform mat4 "View"
+	auto viewLocation = glGetUniformLocation(shader->GetProgramID(), "View");
 
 	// TODO : set shader uniform "View" to viewMatrix
 	glm::mat4 viewMatrix = GetSceneCamera()->GetViewMatrix();
+	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
 	// TODO : get shader location for uniform mat4 "Projection"
+	auto projectionLocation = glGetUniformLocation(shader->GetProgramID(), "Projection");
 
 	// TODO : set shader uniform "Projection" to projectionMatrix
 	glm::mat4 projectionMatrix = GetSceneCamera()->GetProjectionMatrix();
+	glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+
+	// Pentru bonus
+	auto clockLocation = glGetUniformLocation(shader->GetProgramID(), "Clock");
+	auto time = Engine::GetElapsedTime();
+	glUniform1f(clockLocation, time);
 
 	// Draw the object
 	glBindVertexArray(mesh->GetBuffers()->VAO);

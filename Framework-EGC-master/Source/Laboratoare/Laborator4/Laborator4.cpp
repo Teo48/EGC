@@ -39,6 +39,8 @@ void Laborator4::Init()
 	angularStepOX = 0;
 	angularStepOY = 0;
 	angularStepOZ = 0;
+
+	
 }
 
 void Laborator4::FrameStart()
@@ -74,6 +76,50 @@ void Laborator4::Update(float deltaTimeSeconds)
 	modelMatrix *= Transform3D::RotateOY(angularStepOY);
 	modelMatrix *= Transform3D::RotateOZ(angularStepOZ);
 	RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+	//--
+	modelMatrix = glm::mat4(1);
+	modelMatrix *= Transform3D::Translate(cube[0], cube[1], cube[2]);
+	modelMatrix *= Transform3D::RotateOZ(angle);
+	modelMatrix *= Transform3D::Scale(0.1f, 0.1f, 0.1f);
+	
+	RenderMesh(meshes["box"], shaders["Simple"], modelMatrix);
+	
+	modelMatrix = glm::mat4(1);
+	modelMatrix *= Transform3D::Translate(cube[3], cube[4], cube[5]);
+	modelMatrix *= Transform3D::RotateOZ(angle);
+	modelMatrix *= Transform3D::Scale(0.1f, 0.1f, 0.1f);
+	RenderMesh(meshes["box"], shaders["Simple"], modelMatrix);
+
+	modelMatrix = glm::mat4(1);
+	modelMatrix *= Transform3D::Translate(cube[6], cube[7], cube[8]);
+	modelMatrix *= Transform3D::RotateOZ(angle);
+	modelMatrix *= Transform3D::Scale(0.1f, 0.1f, 0.1f);
+	RenderMesh(meshes["box"], shaders["Simple"], modelMatrix);
+
+	modelMatrix = glm::mat4(1);
+	modelMatrix *= Transform3D::Translate(cube[9], cube[10], cube[11]);
+	modelMatrix *= Transform3D::RotateOZ(angle);
+	modelMatrix *= Transform3D::Scale(0.1f, 0.1f, 0.1f);
+	RenderMesh(meshes["box"], shaders["Simple"], modelMatrix);
+
+	modelMatrix = glm::mat4(1);
+	modelMatrix *= Transform3D::Translate(cube[12], cube[13], cube[14]);
+	modelMatrix *= Transform3D::RotateOZ(angle);
+	modelMatrix *= Transform3D::Scale(0.1f, 0.1f, 0.1f);
+	RenderMesh(meshes["box"], shaders["Simple"], modelMatrix);
+
+	modelMatrix = glm::mat4(1);
+	modelMatrix *= Transform3D::Translate(cube[15], cube[16], cube[17]);
+	modelMatrix *= Transform3D::RotateOZ(angle);
+	modelMatrix *= Transform3D::Scale(0.1f, 0.1f, 0.1f);
+	RenderMesh(meshes["box"], shaders["Simple"], modelMatrix);
+
+	modelMatrix = glm::mat4(1);
+	modelMatrix *= Transform3D::Translate(cube[18], cube[19], cube[20]);
+	modelMatrix *= Transform3D::RotateOZ(angle);
+	modelMatrix *= Transform3D::Scale(0.1f, 0.1f, 0.1f);
+	RenderMesh(meshes["box"], shaders["Simple"], modelMatrix);
+
 }
 
 void Laborator4::FrameEnd()
@@ -84,6 +130,88 @@ void Laborator4::FrameEnd()
 void Laborator4::OnInputUpdate(float deltaTime, int mods)
 {
 	// TODO
+	if (!window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT))
+	{
+		if (window->KeyHold(GLFW_KEY_W))
+		{
+			translateZ -= 2 * deltaTime;
+		}
+
+		if (window->KeyHold(GLFW_KEY_S))
+		{
+			translateZ += 2 * deltaTime;
+		}
+
+		if (window->KeyHold(GLFW_KEY_D))
+		{
+			translateX += 2 * deltaTime;
+		}
+
+		if (window->KeyHold(GLFW_KEY_A))
+		{
+			translateX -= 2 * deltaTime;
+			
+			for (int i = 0; i < 7; ++i)
+			{
+				cube[i * 3] += deltaTime;
+			}
+			
+		}
+
+		if (window->KeyHold(GLFW_KEY_R))
+		{
+			translateY += 2 * deltaTime;
+		}
+
+		if (window->KeyHold(GLFW_KEY_F))
+		{
+			translateY -= 2 * deltaTime;
+		}
+
+		if (window->KeyHold(GLFW_KEY_1))
+		{
+			scaleX += 2 * deltaTime;
+			scaleY += 2 * deltaTime;
+			scaleZ += 2 * deltaTime;
+		}
+
+		if (window->KeyHold(GLFW_KEY_2))
+		{
+			scaleX -= 2 * deltaTime;
+			scaleY -= 2 * deltaTime;
+			scaleZ -= 2 * deltaTime;
+		}
+
+		if (window->KeyHold(GLFW_KEY_3))
+		{
+			angularStepOX += deltaTime;
+		}
+
+		if (window->KeyHold(GLFW_KEY_4))
+		{
+			angularStepOX -= deltaTime;
+		}
+
+		if (window->KeyHold(GLFW_KEY_5))
+		{
+			angularStepOY += deltaTime;
+		}
+
+		if (window->KeyHold(GLFW_KEY_6))
+		{
+			angularStepOY -= deltaTime;
+		}
+
+		if (window->KeyHold(GLFW_KEY_7))
+		{
+			angularStepOZ += deltaTime;
+		}
+
+		if (window->KeyHold(GLFW_KEY_8))
+		{
+			angularStepOZ -= deltaTime;
+		}
+	}
 }
 
 void Laborator4::OnKeyPress(int key, int mods)

@@ -107,6 +107,29 @@ void Laborator2::Init()
 		Mesh* square = CreateMesh("square", vertices, indices);
 	}
 
+
+	{
+		std::vector<VertexFormat> vertices
+		{
+			VertexFormat(glm::vec3(0.f, 0.f, 0.f), glm::vec3(0, 0, 1)),//0
+			VertexFormat(glm::vec3(-5.f, 5.f, 0.f), glm::vec3(0, 0, 1)),//1
+			VertexFormat(glm::vec3(-5.f, 2.5f, 0.f), glm::vec3(0, 0, 1)),//2
+			VertexFormat(glm::vec3(-65.f, 2.5f, 0.f), glm::vec3(0, 0, 1)),//3
+			VertexFormat(glm::vec3(-65.f, -2.5f, 0.f), glm::vec3(0, 0, 1)),//4
+			VertexFormat(glm::vec3(-5.f, -2.5f, 0.f), glm::vec3(0, 0, 1)),//5
+			VertexFormat(glm::vec3(-5.f, -5.f, 0.f), glm::vec3(0, 0, 1))//6
+		};
+
+		std::vector<GLushort> indices{
+			0, 1, 2,
+			0, 2, 5,
+			0, 5, 6,
+			2, 4, 5,
+			2, 3, 4
+		};
+
+		Mesh* arrow = CreateMesh("arrow", vertices, indices);
+	}
 	
 }
 
@@ -201,8 +224,8 @@ void Laborator2::Update(float deltaTimeSeconds)
 	RenderMesh(meshes["tetrahedron"], shaders["VertexColor"], glm::vec3(1.f, -0.5f, -0.75f), glm::vec3(0.75f));
 
 	// render a square
-	RenderMesh(meshes["square"], shaders["VertexColor"], glm::vec3(0, 0.5f, 2.5f), glm::vec3(0.75f));
-	
+	//RenderMesh(meshes["square"], shaders["VertexColor"], glm::vec3(0, 0.5f, 2.5f), glm::vec3(0.75f));
+	RenderMesh(meshes["arrow"], shaders["VertexColor"], glm::vec3(0, 0.5f, 2.5f), glm::vec3(0.75f));
 	// Bonus: render a circle using triangle_fan
 	// The circle is rendered by using 10 triangles, but if you press "R" the number increases.
 	// Also, you can decrease the number of triangles by pressing "T".

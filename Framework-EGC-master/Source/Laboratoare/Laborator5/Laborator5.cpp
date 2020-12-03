@@ -36,6 +36,12 @@ void Laborator5::Init()
 	}
 
 	projectionMatrix = glm::perspective(RADIANS(60), window->props.aspectRatio, 0.01f, 200.0f);
+	projectionType = true;
+	right = 20.f;
+	left = .02f;
+	bottom = .02f;
+	top = 20.f;
+	fov = 50.f;
 }
 
 void Laborator5::FrameStart()
@@ -82,6 +88,22 @@ void Laborator5::Update(float deltaTimeSeconds)
 		modelMatrix = glm::scale(modelMatrix, glm::vec3(0.1f));
 		RenderMesh(meshes["sphere"], shaders["VertexNormal"], modelMatrix);
 	}
+
+	{
+		glm::mat4 modelMatrix = glm::mat4(1);
+		modelMatrix = glm::translate(modelMatrix, glm::vec3(5.f, 5.5f, 0));
+		modelMatrix = glm::rotate(modelMatrix, glm::radians(90.f), glm::vec3(1.f, 1.f, 0.f));
+		modelMatrix = glm::scale(modelMatrix, glm::vec3(2.f, 1.5f, 1.3f));
+		RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+	}
+
+	{
+		glm::mat4 modelMatrix = glm::mat4(1);
+		modelMatrix = glm::translate(modelMatrix, glm::vec3(-2.f, 2.5f, 3.f));
+		modelMatrix = glm::rotate(modelMatrix, glm::radians(180.f), glm::vec3(0.8f, 0.f, 0.5f));
+		modelMatrix = glm::scale(modelMatrix, glm::vec3(.8f, 1.f, .5f));
+		RenderMesh(meshes["box"], shaders["VertexNormal"], modelMatrix);
+	}
 }
 
 void Laborator5::FrameEnd()
@@ -107,34 +129,73 @@ void Laborator5::RenderMesh(Mesh * mesh, Shader * shader, const glm::mat4 & mode
 // https://github.com/UPB-Graphics/Framework-EGC/blob/master/Source/Core/Window/InputController.h
 
 void Laborator5::OnInputUpdate(float deltaTime, int mods)
-{
+{	
+	float cameraSpeed = 2.0f;
 	// move the camera only if MOUSE_RIGHT button is pressed
 	if (window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT))
 	{
-		float cameraSpeed = 2.0f;
+		
 
 		if (window->KeyHold(GLFW_KEY_W)) {
 			// TODO : translate the camera forward
+			camera->TranslateForward(deltaTime * cameraSpeed);
 		}
 
 		if (window->KeyHold(GLFW_KEY_A)) {
 			// TODO : translate the camera to the left
+			camera->TranslateRight(-deltaTime * cameraSpeed);
 		}
 
 		if (window->KeyHold(GLFW_KEY_S)) {
 			// TODO : translate the camera backwards
+			camera->TranslateForward(-deltaTime * cameraSpeed);
 		}
 
 		if (window->KeyHold(GLFW_KEY_D)) {
 			// TODO : translate the camera to the right
+			camera->TranslateRight(deltaTime * cameraSpeed);
 		}
 
 		if (window->KeyHold(GLFW_KEY_Q)) {
 			// TODO : translate the camera down
+			camera->TranslateUpword(-deltaTime * cameraSpeed);
 		}
 
 		if (window->KeyHold(GLFW_KEY_E)) {
 			// TODO : translate the camera up
+			camera->TranslateUpword(deltaTime * cameraSpeed);
+		}
+	}
+
+	if (window->KeyHold(GLFW_KEY_1))
+	{
+		fov += 10 * deltaTime * cameraSpeed;
+		if (projectionType) {
+			projectionMatrix = glm::perspective(glm::radians(fov), window->props.aspectRatio, Z_NEAR, Z_FAR);
+		}
+	}
+
+	if (window->KeyHold(GLFW_KEY_2))
+	{
+		fov -= 10 * deltaTime * cameraSpeed;
+		if (projectionType) {
+			projectionMatrix = glm::perspective(glm::radians(fov), window->props.aspectRatio, Z_NEAR, Z_FAR);
+		}
+	}
+
+	if (window->KeyHold(GLFW_KEY_3))
+	{
+		right += 10 * deltaTime * cameraSpeed;
+		if (!projectionType) {
+			projectionMatrix = glm::ortho(left, right, bottom, top, Z_NEAR, Z_FAR);
+		}
+	}
+
+	if (window->KeyHold(GLFW_KEY_4))
+	{
+		right -= 10 * deltaTime * cameraSpeed;
+		if (!projectionType) {
+			projectionMatrix = glm::ortho(left, right, bottom, top, Z_NEAR, Z_FAR);
 		}
 	}
 }
@@ -145,6 +206,18 @@ void Laborator5::OnKeyPress(int key, int mods)
 	if (key == GLFW_KEY_T)
 	{
 		renderCameraTarget = !renderCameraTarget;
+	}
+
+	if (key == GLFW_KEY_O)
+	{
+		projectionType = false;
+		projectionMatrix = glm::ortho(left, right, bottom, top, Z_NEAR, Z_FAR);
+	}
+
+	if (key == GLFW_KEY_P)
+	{
+		projectionType = true;
+		projectionMatrix = glm::perspective(glm::radians(fov), window->props.aspectRatio, Z_NEAR, Z_FAR);
 	}
 }
 
@@ -166,12 +239,16 @@ void Laborator5::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
 			renderCameraTarget = false;
 			// TODO : rotate the camera in First-person mode around OX and OY using deltaX and deltaY
 			// use the sensitivity variables for setting up the rotation speed
+			camera->RotateFirstPerson_OX(sensivityOX * -deltaY);
+			camera->RotateFirstPerson_OY(sensivityOY * -deltaX);
 		}
 
 		if (window->GetSpecialKeyState() && GLFW_MOD_CONTROL) {
 			renderCameraTarget = true;
 			// TODO : rotate the camera in Third-person mode around OX and OY using deltaX and deltaY
 			// use the sensitivity variables for setting up the rotation speed
+			camera->RotateThirdPerson_OX(sensivityOX * -deltaY);
+			camera->RotateThirdPerson_OY(sensivityOY * -deltaX);
 		}
 
 	}

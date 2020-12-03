@@ -2,6 +2,9 @@
 #include <Component/SimpleScene.h>
 #include "LabCamera.h"
 
+constexpr auto Z_FAR = 300.f;
+constexpr auto Z_NEAR = 0.02f;
+
 class Laborator5 : public SimpleScene
 {
 	public:
@@ -30,4 +33,6 @@ class Laborator5 : public SimpleScene
 		Laborator::Camera *camera;
 		glm::mat4 projectionMatrix;
 		bool renderCameraTarget;
+		bool projectionType;
+		GLfloat right, left, bottom, top, fov;
 };
