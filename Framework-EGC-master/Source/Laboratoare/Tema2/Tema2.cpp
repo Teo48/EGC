@@ -15,50 +15,6 @@ Tema2::~Tema2()
 
 }
 
-void Tema2::RenderSimpleMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, int color, int collide)
-{
-	if (!mesh || !shader || !shader->GetProgramID())
-		return;
-
-	// render an object using the specified shader and the specified position
-	glUseProgram(shader->program);
-
-	// TODO : get shader location for uniform mat4 "Model"
-	auto modelLocation = glGetUniformLocation(shader->program, "Model");
-
-	// TODO : set shader uniform "Model" to modelMatrix
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(modelMatrix));
-
-	// TODO : get shader location for uniform mat4 "View"
-	auto viewLocation = glGetUniformLocation(shader->GetProgramID(), "View");
-
-	// TODO : set shader uniform "View" to viewMatrix
-	glm::mat4 viewMatrix = GetSceneCamera()->GetViewMatrix();
-	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(viewMatrix));
-
-	// TODO : get shader location for uniform mat4 "Projection"
-	auto projectionLocation = glGetUniformLocation(shader->GetProgramID(), "Projection");
-
-	// TODO : set shader uniform "Projection" to projectionMatrix
-	glm::mat4 projectionMatrix = GetSceneCamera()->GetProjectionMatrix();
-	glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
-	
-	auto clockLocation = glGetUniformLocation(shader->GetProgramID(), "Clock");
-	auto time = Engine::GetElapsedTime();
-	glUniform1f(clockLocation, time);
-
-	auto collideLocation = glGetUniformLocation(shader->GetProgramID(), "Collide");
-	glUniform1i(collideLocation, collide);
-
-	auto colorLocation = glGetUniformLocation(shader->GetProgramID(), "Color");
-	glUniform1i(colorLocation, color);
-
-	// Draw the object
-	glBindVertexArray(mesh->GetBuffers()->VAO);
-	glDrawElements(mesh->GetDrawMode(), static_cast<int>(mesh->indices.size()), GL_UNSIGNED_SHORT, 0);
-}
-
-
 
 void Tema2::FrameStart()
 {
@@ -109,69 +65,102 @@ void Tema2::Init()
 	ok = true;
 	sw1 = sw2 = false;
 	platform->Init();
+	fuelBarCoord = new fuelBarAttr(1.f, -0.985f, 0.875f, -0.99f, 0.87f);
+	maxFuel = 1.f;
+	platformSpeed = 5.f;
+	platformMaxSpeed = 25.f;
+	startGame = false;
 }
 
 void Tema2::RenderCubes() {
 	for (int i = 0; i < 50; ++i) {
 		for (int j = 0; j < 5; ++j) {
-			glm::mat4 modelMatrix = glm::mat4(1);
-			modelMatrix *= Transform3D::Translate(platform->cubes[i][j].xmin, 0.f, platform->cubes[i][j].zmax);
-			modelMatrix *= Transform3D::Translate(-0.5f, 0.f, -0.5f);
-			modelMatrix *= Transform3D::Scale(2.f, 0.1f, -platform->cubes[i][j].length);
-			modelMatrix *= Transform3D::Translate(0.5f, 0.f, 0.5f);
+			if (platform->cubes[i][j].color != 6) {
+				glm::mat4 modelMatrix = glm::mat4(1);
+				modelMatrix *= Transform3D::Translate(platform->cubes[i][j].xmin, 0.f, platform->cubes[i][j].zmax);
+				modelMatrix *= Transform3D::Translate(-0.5f, 0.f, -0.5f);
+				modelMatrix *= Transform3D::Scale(2.f, 0.1f, -platform->cubes[i][j].length);
+				modelMatrix *= Transform3D::Translate(0.5f, 0.f, 0.5f);
 
-			RenderSimpleMesh(platform->getCube(), shaders["PlatformShader"], modelMatrix, platform->cubes[i][j].color, platform->cubes[i][j].collide);
+				RenderSimpleMesh(platform->getCube(), shaders["PlatformShader"], modelMatrix, platform->cubes[i][j].color, platform->cubes[i][j].collide);
+			}
 		}
 	}
-	
 }
 
 void Tema2::Update(float deltaTimeSeconds)
 {
 
-	{
-		glm::mat4 modelMatrix = glm::mat4(1);
-		modelMatrix *= Transform3D::Translate(playerCoordinates.x, playerCoordinates.y, playerCoordinates.z);
-		RenderSimpleMesh(player->getPlayer(), shaders["PlayerShader"], modelMatrix, 0, 0);
-	}
-
-	for (int i = 0; i < 50; ++i) {
-		for (int j = 0; j < 5; ++j) {
-			platform->cubes[i][j].zmax += 10.f * deltaTimeSeconds;
-			platform->cubes[i][j].zmin += 10.f * deltaTimeSeconds;
+	if (!startGame) {
+		RenderCubes();
+		{
+			glm::mat4 modelMatrix = glm::mat4(1);
+			modelMatrix *= Transform3D::Translate(playerCoordinates.x, playerCoordinates.y, playerCoordinates.z);
+			RenderSimpleMesh(player->getPlayer(), shaders["PlayerShader"], modelMatrix, 0, 0);
 		}
+
+		RenderFuelBar();
 	}
+	else {
 
-	reset();
+		{
+			glm::mat4 modelMatrix = glm::mat4(1);
+			modelMatrix *= Transform3D::Translate(playerCoordinates.x, playerCoordinates.y, playerCoordinates.z);
+			RenderSimpleMesh(player->getPlayer(), shaders["PlayerShader"], modelMatrix, 0, 0);
+		}
 
-	for (int i = 0; i < 50; ++i) {
-		for (int j = 0; j < 5; ++j) {
-			if (checkCollision(platform->cubes[i][j].xmin - 0.5f, platform->cubes[i][j].ymin, platform->cubes[i][j].zmax - platform->cubes[i][j].length - 0.5f,
-				platform->cubes[i][j].xmin + 1.5f, platform->cubes[i][j].ymax, platform->cubes[i][j].zmax - 0.5f)) {
-				platform->cubes[i][j].collide = 1;
-			}
-			else {
-				platform->cubes[i][j].collide = 0;
-			}
-
-			if (checkCollision(platform->cubes[i][j].xmin - 0.5f, platform->cubes[i][j].ymin, platform->cubes[i][j].zmax - platform->cubes[i][j].length - 0.5f,
-				platform->cubes[i][j].xmin + 1.5f, platform->cubes[i][j].ymax, platform->cubes[i][j].zmax - 0.5f) && platform->cubes[i][j].color == 6) {
-				platform->cubes[i][j].collide = 0;
-				std::cout << "Ce-ai facut ma nene ma" << '\n';
+		for (int i = 0; i < 50; ++i) {
+			for (int j = 0; j < 5; ++j) {
+				platform->cubes[i][j].zmax += platformSpeed * deltaTimeSeconds;
+				platform->cubes[i][j].zmin += platformSpeed * deltaTimeSeconds;
 			}
 		}
-	}
-	RenderCubes();
-	{	
-		glm::mat4 modelMatrix = glm::mat4(1);
-		//modelMatrix *= Transform3D::Translate2D(30.f + 50, 700);
-		modelMatrix *= Transform3D::Translate(-0.985f, 0.875f, 0.f);
-		Render2DMesh(fuelBar->getforegroundFuelBar(), shaders["FuelBarShader"], modelMatrix, glm::vec3(0.f, 0.82f, 0.3143f));
-		modelMatrix = glm::mat4(1);
-		modelMatrix *= Transform3D::Translate(-0.99f, 0.87f, 0.f);
-		Render2DMesh(fuelBar->getbackgroundFuelBar(), shaders["FuelBarShader"], modelMatrix, glm::vec3(1.f, 1.f, 1.f));
-		
-		
+
+		reset();
+
+		for (int i = 0; i < 50; ++i) {
+			for (int j = 0; j < 5; ++j) {
+				if (checkCollision(platform->cubes[i][j].xmin - 0.5f, platform->cubes[i][j].ymin, platform->cubes[i][j].zmax - platform->cubes[i][j].length - 0.5f,
+					platform->cubes[i][j].xmin + 1.5f, platform->cubes[i][j].ymax, platform->cubes[i][j].zmax - 0.5f)) {
+					platform->cubes[i][j].collide = 1;
+
+					// If the player hits a green platform, he gets fuel
+					if (platform->cubes[i][j].color == 5) {
+						fuelBarCoord->fuel + 0.01f > 1.f ? fuelBarCoord->fuel = maxFuel : fuelBarCoord->fuel += 0.01f;
+					}
+
+					// If the player hits a yellow platform, he loses fuel
+					if (platform->cubes[i][j].color == 3) {
+						fuelBarCoord->fuel - 0.01f < 0.f ? exit(EXIT_SUCCESS) : fuelBarCoord->fuel -= 0.01f;
+					}
+
+					// If the player hits a red platform, the game is over
+
+					if (platform->cubes[i][j].color == 2) {
+						gameOver("");
+					}
+				}
+				else {
+					platform->cubes[i][j].collide = 0;
+				}
+
+				if (checkCollision(platform->cubes[i][j].xmin - 0.5f, platform->cubes[i][j].ymin, platform->cubes[i][j].zmax - platform->cubes[i][j].length - 0.5f,
+					platform->cubes[i][j].xmin + 1.5f, platform->cubes[i][j].ymax, platform->cubes[i][j].zmax - 0.5f) && platform->cubes[i][j].color == 6) {
+					platform->cubes[i][j].collide = 0;
+					std::cout << "Ai cazut boss!" << '\n';
+				}
+			}
+		}
+
+		RenderCubes();
+		{
+			
+			fuelBarCoord->fuel -= 0.0005f;
+			if (fuelBarCoord->fuel < 0.f) {
+				gameOver("\n\t\t\t\tFUEL RAN OUT!\n");
+			}
+			RenderFuelBar();
+		}
 	}
 }
 
@@ -198,11 +187,13 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
 	if (!window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT)) {
 
 		if (window->KeyHold(GLFW_KEY_W)) {
-			playerCoordinates.z -= 2.f * deltaTime;
+			platformSpeed > 25.f ? platformSpeed = platformMaxSpeed : platformSpeed += 0.5f;
+			//playerCoordinates.z -= 2.f * deltaTime;
 		}
 
 		if (window->KeyHold(GLFW_KEY_S)) {
-			playerCoordinates.z += 2.f * deltaTime;
+			//playerCoordinates.z += 2.f * deltaTime;
+			platformSpeed < 3.f ? platformSpeed = 3.f : platformSpeed -= 0.5f;
 		}
 
 		if (window->KeyHold(GLFW_KEY_A)) {
@@ -220,7 +211,9 @@ void Tema2::OnKeyPress(int key, int mods)
 {
 	// add key press event
 
-	
+	if (key == GLFW_KEY_ENTER) {
+		startGame = true;
+	}
 }
 
 void Tema2::OnKeyRelease(int key, int mods)
@@ -290,6 +283,17 @@ void Tema2::reset()
 	}
 }
 
+void Tema2::RenderFuelBar()
+{
+	glm::mat4 modelMatrix = glm::mat4(1);
+	modelMatrix *= Transform3D::Translate(fuelBarCoord->foreGroundX, fuelBarCoord->foreGroundY, 0.f);
+	modelMatrix *= Transform3D::Scale(fuelBarCoord->fuel, 1.f, 1.f);
+	Render2DMesh(fuelBar->getforegroundFuelBar(), shaders["FuelBarShader"], modelMatrix, glm::vec3(0.f, 0.82f, 0.3143f));
+	modelMatrix = glm::mat4(1);
+	modelMatrix *= Transform3D::Translate(fuelBarCoord->backGroundX, fuelBarCoord->backGroundY, 0.f);
+	Render2DMesh(fuelBar->getbackgroundFuelBar(), shaders["FuelBarShader"], modelMatrix, glm::vec3(1.f, 1.f, 1.f));
+}
+
 void Tema2::Render2DMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, const glm::vec3& color)
 {
 	if (!mesh || !shader || !shader->GetProgramID())
@@ -306,6 +310,58 @@ void Tema2::Render2DMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatri
 
 	auto colorLocation = glGetUniformLocation(shader->GetProgramID(), "Color");
 	glUniform3fv(colorLocation, 1, glm::value_ptr(color));
+
+	// Draw the object
+	glBindVertexArray(mesh->GetBuffers()->VAO);
+	glDrawElements(mesh->GetDrawMode(), static_cast<int>(mesh->indices.size()), GL_UNSIGNED_SHORT, 0);
+}
+
+void Tema2::gameOver(std::string goMessage) 
+{
+	std::cout << "========================================================================";
+	std::cout << "\n\t\t\t\tGAME OVER!\n";
+	std::cout << goMessage;
+	std::cout << "========================================================================\n";
+	exit(EXIT_SUCCESS);
+}
+
+void Tema2::RenderSimpleMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, int color, int collide)
+{
+	if (!mesh || !shader || !shader->GetProgramID())
+		return;
+
+	// render an object using the specified shader and the specified position
+	glUseProgram(shader->program);
+
+	// TODO : get shader location for uniform mat4 "Model"
+	auto modelLocation = glGetUniformLocation(shader->program, "Model");
+
+	// TODO : set shader uniform "Model" to modelMatrix
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+
+	// TODO : get shader location for uniform mat4 "View"
+	auto viewLocation = glGetUniformLocation(shader->GetProgramID(), "View");
+
+	// TODO : set shader uniform "View" to viewMatrix
+	glm::mat4 viewMatrix = GetSceneCamera()->GetViewMatrix();
+	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+
+	// TODO : get shader location for uniform mat4 "Projection"
+	auto projectionLocation = glGetUniformLocation(shader->GetProgramID(), "Projection");
+
+	// TODO : set shader uniform "Projection" to projectionMatrix
+	glm::mat4 projectionMatrix = GetSceneCamera()->GetProjectionMatrix();
+	glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+
+	auto clockLocation = glGetUniformLocation(shader->GetProgramID(), "Clock");
+	auto time = Engine::GetElapsedTime();
+	glUniform1f(clockLocation, time);
+
+	auto collideLocation = glGetUniformLocation(shader->GetProgramID(), "Collide");
+	glUniform1i(collideLocation, collide);
+
+	auto colorLocation = glGetUniformLocation(shader->GetProgramID(), "Color");
+	glUniform1i(colorLocation, color);
 
 	// Draw the object
 	glBindVertexArray(mesh->GetBuffers()->VAO);

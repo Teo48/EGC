@@ -36,6 +36,7 @@ class Tema2 : public SimpleScene {
 		bool checkCollision(const float xmin, const float ymin, const float zmin,
 							const float xmax, const float ymax, const float zmax);
 		void RenderCubes();
+		void RenderFuelBar();
 		void reset();
 
 		bool isCollision;
@@ -43,6 +44,33 @@ class Tema2 : public SimpleScene {
 		int color;
 		bool ok;
 		bool sw1, sw2;
+		bool startGame;
+		float maxFuel;
+		float platformSpeed;
+		float platformMaxSpeed;
+		typedef struct fuelBarAttr {
+			float fuel;
+			float foreGroundX;
+			float foreGroundY;
+			float backGroundX;
+			float backGroundY;
+			
+			fuelBarAttr() {}
+
+			fuelBarAttr(const float fuel, const float foreGroundX,
+						const float foreGroundY, const float backGroundX,
+						const float backGroundY) {
+				this->fuel = fuel;
+				this->foreGroundX = foreGroundX;
+				this->foreGroundY = foreGroundY;
+				this->backGroundX = backGroundX;
+				this->backGroundY = backGroundY;
+			}
+		} fuelBarAttr;
+
+		fuelBarAttr* fuelBarCoord;
+
+		void gameOver(const std::string goMessage);
 };
 
 #endif // __TEMA2_H__
