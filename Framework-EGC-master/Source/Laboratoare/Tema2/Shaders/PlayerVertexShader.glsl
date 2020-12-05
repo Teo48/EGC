@@ -32,7 +32,6 @@ void main()
 	} else if (frag_position.y >= 0.f && frag_position.y < 0.15f) {
 		frag_color = vec3(0.f, 0.f, 0.f);
 	} else if (frag_position.y < 0.f) {
-		//frag_color = vec3(0.f, 0.4667f, 1.f);
 		frag_color = vec3(1.f, 1.f, 1.f);
 	}
 

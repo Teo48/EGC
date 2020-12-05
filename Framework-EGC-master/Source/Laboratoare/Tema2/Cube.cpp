@@ -10,7 +10,6 @@ Cube::~Cube() {
 	delete this->cube;
 }
 
-// TODO: Sa adaug culorile pentru abilitati si sa las spatii intre platforme
 void Cube::Init() {
 	cubes = std::vector<std::vector<attributes>>(50, std::vector<attributes>(5));
 	cubes[0][0].xmin = -4.5f;

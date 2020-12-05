@@ -59,6 +59,14 @@ void Tema2::Init()
 		shaders[shader->GetName()] = shader;
 	}
 
+	{
+		Shader* shader = new Shader("DeformedPlayerShader");
+		shader->AddShader("Source/Laboratoare/Tema2/Shaders/DeformedPlayerVertexShader.glsl", GL_VERTEX_SHADER);
+		shader->AddShader("Source/Laboratoare/Tema2/Shaders/DeformedPlayerFragmentShader.glsl", GL_FRAGMENT_SHADER);
+		shader->CreateAndLink();
+		shaders[shader->GetName()] = shader;
+	}
+
 	playerCoordinates = glm::vec3(0.f, 0.5f, 0.f);
 	isCollision = false;
 	collide = 0;
@@ -67,9 +75,14 @@ void Tema2::Init()
 	platform->Init();
 	fuelBarCoord = new fuelBarAttr(1.f, -0.985f, 0.875f, -0.99f, 0.87f);
 	maxFuel = 1.f;
-	platformSpeed = 5.f;
+	platformSpeed = 10.f;
 	platformMaxSpeed = 25.f;
 	startGame = false;
+	isJumpTriggered = false;
+	inAir = false;
+	trapSpeed = false;
+	isDiformed = false;
+	trapSpeedTime = 20.f;
 }
 
 void Tema2::RenderCubes() {
@@ -93,22 +106,37 @@ void Tema2::Update(float deltaTimeSeconds)
 
 	if (!startGame) {
 		RenderCubes();
-		{
-			glm::mat4 modelMatrix = glm::mat4(1);
-			modelMatrix *= Transform3D::Translate(playerCoordinates.x, playerCoordinates.y, playerCoordinates.z);
-			RenderSimpleMesh(player->getPlayer(), shaders["PlayerShader"], modelMatrix, 0, 0);
-		}
-
+		RenderPlayer("PlayerShader");
 		RenderFuelBar();
 	}
 	else {
 
-		{
-			glm::mat4 modelMatrix = glm::mat4(1);
-			modelMatrix *= Transform3D::Translate(playerCoordinates.x, playerCoordinates.y, playerCoordinates.z);
-			RenderSimpleMesh(player->getPlayer(), shaders["PlayerShader"], modelMatrix, 0, 0);
+		if (isJumpTriggered) {
+			(playerCoordinates.y + 0.2f * platformSpeed * deltaTimeSeconds) > 2.f ? playerCoordinates.y = 2.f, isJumpTriggered = false :
+				playerCoordinates.y += 0.2f * platformSpeed * deltaTimeSeconds;
 		}
 
+		if (playerCoordinates.y == 2.f) {
+			inAir = true;
+		}
+		
+		if (inAir) {
+			(playerCoordinates.y - 0.2f * platformSpeed * deltaTimeSeconds) < 0.5f ? playerCoordinates.y = 0.5f, inAir = false :
+				playerCoordinates.y -= 0.2f * platformSpeed * deltaTimeSeconds;
+		}
+
+		if (trapSpeed) {
+			platformSpeed = 50.f;
+			(trapSpeedTime - 10.f * deltaTimeSeconds) < 0.f ? trapSpeed = false, isDiformed = false, platformSpeed = oldPlatformSpeed, trapSpeedTime = 20.f :
+				trapSpeedTime -= 10.f * deltaTimeSeconds;
+		}
+
+		if (!isDiformed) {
+			RenderPlayer("PlayerShader");
+		}
+		else {
+			RenderPlayer("DeformedPlayerShader");
+		}
 		for (int i = 0; i < 50; ++i) {
 			for (int j = 0; j < 5; ++j) {
 				platform->cubes[i][j].zmax += platformSpeed * deltaTimeSeconds;
@@ -129,7 +157,7 @@ void Tema2::Update(float deltaTimeSeconds)
 						fuelBarCoord->fuel + 0.01f > 1.f ? fuelBarCoord->fuel = maxFuel : fuelBarCoord->fuel += 0.01f;
 					}
 
-					// If the player hits a yellow platform, he loses fuel
+					// If the player hits an yellow platform, he loses fuel
 					if (platform->cubes[i][j].color == 3) {
 						fuelBarCoord->fuel - 0.01f < 0.f ? exit(EXIT_SUCCESS) : fuelBarCoord->fuel -= 0.01f;
 					}
@@ -137,7 +165,15 @@ void Tema2::Update(float deltaTimeSeconds)
 					// If the player hits a red platform, the game is over
 
 					if (platform->cubes[i][j].color == 2) {
-						gameOver("");
+						//gameOver("");
+					}
+
+					// If the player this an orange platform, he's stuck at max speed
+
+					if (platform->cubes[i][j].color == 4 && !trapSpeed) {
+						trapSpeed = true;
+						isDiformed = true;
+						oldPlatformSpeed = platformSpeed;
 					}
 				}
 				else {
@@ -185,15 +221,15 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
 	*/
 
 	if (!window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT)) {
+		
+		if (!trapSpeed) {
+			if (window->KeyHold(GLFW_KEY_W)) {
+				platformSpeed > 25.f ? platformSpeed = platformMaxSpeed : platformSpeed += 10.f * deltaTime;
+			}
 
-		if (window->KeyHold(GLFW_KEY_W)) {
-			platformSpeed > 25.f ? platformSpeed = platformMaxSpeed : platformSpeed += 0.5f;
-			//playerCoordinates.z -= 2.f * deltaTime;
-		}
-
-		if (window->KeyHold(GLFW_KEY_S)) {
-			//playerCoordinates.z += 2.f * deltaTime;
-			platformSpeed < 3.f ? platformSpeed = 3.f : platformSpeed -= 0.5f;
+			if (window->KeyHold(GLFW_KEY_S)) {
+				platformSpeed < 3.f ? platformSpeed = 3.f : platformSpeed -= 10.f * deltaTime;
+			}
 		}
 
 		if (window->KeyHold(GLFW_KEY_A)) {
@@ -210,6 +246,13 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
 void Tema2::OnKeyPress(int key, int mods)
 {
 	// add key press event
+
+	if (!isJumpTriggered && !inAir) {
+		if (key == GLFW_KEY_SPACE) {
+			isJumpTriggered = true;
+			inAir = true;
+		}
+	}
 
 	if (key == GLFW_KEY_ENTER) {
 		startGame = true;
@@ -292,6 +335,13 @@ void Tema2::RenderFuelBar()
 	modelMatrix = glm::mat4(1);
 	modelMatrix *= Transform3D::Translate(fuelBarCoord->backGroundX, fuelBarCoord->backGroundY, 0.f);
 	Render2DMesh(fuelBar->getbackgroundFuelBar(), shaders["FuelBarShader"], modelMatrix, glm::vec3(1.f, 1.f, 1.f));
+}
+
+void Tema2::RenderPlayer(std::string shaderName) 
+{
+	glm::mat4 modelMatrix = glm::mat4(1);
+	modelMatrix *= Transform3D::Translate(playerCoordinates.x, playerCoordinates.y, playerCoordinates.z);
+	RenderSimpleMesh(player->getPlayer(), shaders[shaderName], modelMatrix, 0, 0);
 }
 
 void Tema2::Render2DMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, const glm::vec3& color)

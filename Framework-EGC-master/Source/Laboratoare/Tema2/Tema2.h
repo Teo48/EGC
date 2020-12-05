@@ -37,6 +37,7 @@ class Tema2 : public SimpleScene {
 							const float xmax, const float ymax, const float zmax);
 		void RenderCubes();
 		void RenderFuelBar();
+		void RenderPlayer(const std::string shaderName);
 		void reset();
 
 		bool isCollision;
@@ -48,6 +49,12 @@ class Tema2 : public SimpleScene {
 		float maxFuel;
 		float platformSpeed;
 		float platformMaxSpeed;
+		float trapSpeedTime;
+		float oldPlatformSpeed;
+		bool isJumpTriggered;
+		bool inAir;
+		bool trapSpeed;
+		bool isDiformed;
 		typedef struct fuelBarAttr {
 			float fuel;
 			float foreGroundX;
