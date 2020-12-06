@@ -6,6 +6,7 @@
 #include "Player.h"
 #include "Cube.h"
 #include "FuelBar.h"
+#include "LabCamera.h"
 
 class Tema2 : public SimpleScene {
 	public:
@@ -39,13 +40,14 @@ class Tema2 : public SimpleScene {
 		void RenderFuelBar();
 		void RenderPlayer(const std::string shaderName);
 		void reset();
-
+		Tema2Camera::Camera* camera;
 		bool isCollision;
 		int collide;
 		int color;
 		bool ok;
 		bool sw1, sw2;
 		bool startGame;
+		bool isDead;
 		float maxFuel;
 		float platformSpeed;
 		float platformMaxSpeed;

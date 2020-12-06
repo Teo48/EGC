@@ -34,6 +34,8 @@ void Tema2::Init()
 	player = new Player();
 	platform = new Cube();
 	fuelBar = new FuelBar();
+	camera = new Tema2Camera::Camera();
+	camera->Set(glm::vec3(0, 2, 3.5f), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
 
 	{
 		Shader* shader = new Shader("PlayerShader");
@@ -80,6 +82,7 @@ void Tema2::Init()
 	startGame = false;
 	isJumpTriggered = false;
 	inAir = false;
+	isDead = false;
 	trapSpeed = false;
 	isDiformed = false;
 	trapSpeedTime = 20.f;
@@ -111,90 +114,102 @@ void Tema2::Update(float deltaTimeSeconds)
 	}
 	else {
 
-		if (isJumpTriggered) {
-			(playerCoordinates.y + 0.2f * platformSpeed * deltaTimeSeconds) > 2.f ? playerCoordinates.y = 2.f, isJumpTriggered = false :
-				playerCoordinates.y += 0.2f * platformSpeed * deltaTimeSeconds;
-		}
+		if (!isDead) {
+			if (isJumpTriggered) {
+				(playerCoordinates.y + 0.2f * platformSpeed * deltaTimeSeconds) > 2.f ? playerCoordinates.y = 2.f, isJumpTriggered = false :
+					playerCoordinates.y += 0.2f * platformSpeed * deltaTimeSeconds;
+			}
 
-		if (playerCoordinates.y == 2.f) {
-			inAir = true;
-		}
-		
-		if (inAir) {
-			(playerCoordinates.y - 0.2f * platformSpeed * deltaTimeSeconds) < 0.5f ? playerCoordinates.y = 0.5f, inAir = false :
-				playerCoordinates.y -= 0.2f * platformSpeed * deltaTimeSeconds;
-		}
+			if (playerCoordinates.y == 2.f) {
+				inAir = true;
+			}
 
-		if (trapSpeed) {
-			platformSpeed = 50.f;
-			(trapSpeedTime - 10.f * deltaTimeSeconds) < 0.f ? trapSpeed = false, isDiformed = false, platformSpeed = oldPlatformSpeed, trapSpeedTime = 20.f :
-				trapSpeedTime -= 10.f * deltaTimeSeconds;
-		}
+			if (inAir) {
+				(playerCoordinates.y - 0.2f * platformSpeed * deltaTimeSeconds) < 0.5f ? playerCoordinates.y = 0.5f, inAir = false :
+					playerCoordinates.y -= 0.2f * platformSpeed * deltaTimeSeconds;
+			}
 
-		if (!isDiformed) {
+			if (trapSpeed) {
+				platformSpeed = 50.f;
+				(trapSpeedTime - 10.f * deltaTimeSeconds) < 0.f ? trapSpeed = false, isDiformed = false, platformSpeed = oldPlatformSpeed, trapSpeedTime = 20.f :
+					trapSpeedTime -= 10.f * deltaTimeSeconds;
+			}
+
+			if (!isDiformed) {
+				RenderPlayer("PlayerShader");
+			}
+			else {
+				RenderPlayer("DeformedPlayerShader");
+			}
+			for (int i = 0; i < 50; ++i) {
+				for (int j = 0; j < 5; ++j) {
+					platform->cubes[i][j].zmax += platformSpeed * deltaTimeSeconds;
+					platform->cubes[i][j].zmin += platformSpeed * deltaTimeSeconds;
+				}
+			}
+
+			reset();
+
+			for (int i = 0; i < 50; ++i) {
+				for (int j = 0; j < 5; ++j) {
+					if (checkCollision(platform->cubes[i][j].xmin - 0.5f, platform->cubes[i][j].ymin, platform->cubes[i][j].zmax - platform->cubes[i][j].length - 0.5f,
+						platform->cubes[i][j].xmin + 1.5f, platform->cubes[i][j].ymax, platform->cubes[i][j].zmax - 0.5f)) {
+						platform->cubes[i][j].collide = 1;
+
+						// If the player hits a green platform, he gets fuel
+						if (platform->cubes[i][j].color == 5) {
+							fuelBarCoord->fuel + 0.01f > 1.f ? fuelBarCoord->fuel = maxFuel : fuelBarCoord->fuel += 0.01f;
+						}
+
+						// If the player hits an yellow platform, he loses fuel
+						if (platform->cubes[i][j].color == 3) {
+							fuelBarCoord->fuel - 0.01f < 0.f ? exit(EXIT_SUCCESS) : fuelBarCoord->fuel -= 0.01f;
+						}
+
+						// If the player hits a red platform, the game is over
+
+						if (platform->cubes[i][j].color == 2) {
+							//gameOver("");
+						}
+
+						// If the player this an orange platform, he's stuck at max speed
+
+						if (platform->cubes[i][j].color == 4 && !trapSpeed) {
+							trapSpeed = true;
+							isDiformed = true;
+							oldPlatformSpeed = platformSpeed;
+						}
+					}
+					else {
+						platform->cubes[i][j].collide = 0;
+					}
+
+					if (checkCollision(platform->cubes[i][j].xmin, platform->cubes[i][j].ymin, platform->cubes[i][j].zmax - platform->cubes[i][j].length - 1.5f,
+						platform->cubes[i][j].xmin + 1.f, platform->cubes[i][j].ymax, platform->cubes[i][j].zmax - 1.f) && platform->cubes[i][j].color == 6) {
+						platform->cubes[i][j].collide = 0;
+						isDead = true;
+					}
+				}
+			}
+
+			if ((!inAir && playerCoordinates.x < -5.5f) || (!inAir && playerCoordinates.x > 5.5f)) {
+				isDead = true;
+			}
+
+			RenderCubes();
+			{
+				fuelBarCoord->fuel -= 0.0005f;
+				if (fuelBarCoord->fuel < 0.f) {
+					gameOver("\n\t\t\t\tFUEL RAN OUT!\n");
+				}
+				RenderFuelBar();
+			}
+		} else {
+			if (playerCoordinates.y > -10.f) {
+				playerCoordinates.y -= 1.f * deltaTimeSeconds;
+			}
 			RenderPlayer("PlayerShader");
-		}
-		else {
-			RenderPlayer("DeformedPlayerShader");
-		}
-		for (int i = 0; i < 50; ++i) {
-			for (int j = 0; j < 5; ++j) {
-				platform->cubes[i][j].zmax += platformSpeed * deltaTimeSeconds;
-				platform->cubes[i][j].zmin += platformSpeed * deltaTimeSeconds;
-			}
-		}
-
-		reset();
-
-		for (int i = 0; i < 50; ++i) {
-			for (int j = 0; j < 5; ++j) {
-				if (checkCollision(platform->cubes[i][j].xmin - 0.5f, platform->cubes[i][j].ymin, platform->cubes[i][j].zmax - platform->cubes[i][j].length - 0.5f,
-					platform->cubes[i][j].xmin + 1.5f, platform->cubes[i][j].ymax, platform->cubes[i][j].zmax - 0.5f)) {
-					platform->cubes[i][j].collide = 1;
-
-					// If the player hits a green platform, he gets fuel
-					if (platform->cubes[i][j].color == 5) {
-						fuelBarCoord->fuel + 0.01f > 1.f ? fuelBarCoord->fuel = maxFuel : fuelBarCoord->fuel += 0.01f;
-					}
-
-					// If the player hits an yellow platform, he loses fuel
-					if (platform->cubes[i][j].color == 3) {
-						fuelBarCoord->fuel - 0.01f < 0.f ? exit(EXIT_SUCCESS) : fuelBarCoord->fuel -= 0.01f;
-					}
-
-					// If the player hits a red platform, the game is over
-
-					if (platform->cubes[i][j].color == 2) {
-						//gameOver("");
-					}
-
-					// If the player this an orange platform, he's stuck at max speed
-
-					if (platform->cubes[i][j].color == 4 && !trapSpeed) {
-						trapSpeed = true;
-						isDiformed = true;
-						oldPlatformSpeed = platformSpeed;
-					}
-				}
-				else {
-					platform->cubes[i][j].collide = 0;
-				}
-
-				if (checkCollision(platform->cubes[i][j].xmin - 0.5f, platform->cubes[i][j].ymin, platform->cubes[i][j].zmax - platform->cubes[i][j].length - 0.5f,
-					platform->cubes[i][j].xmin + 1.5f, platform->cubes[i][j].ymax, platform->cubes[i][j].zmax - 0.5f) && platform->cubes[i][j].color == 6) {
-					platform->cubes[i][j].collide = 0;
-					std::cout << "Ai cazut boss!" << '\n';
-				}
-			}
-		}
-
-		RenderCubes();
-		{
-			
-			fuelBarCoord->fuel -= 0.0005f;
-			if (fuelBarCoord->fuel < 0.f) {
-				gameOver("\n\t\t\t\tFUEL RAN OUT!\n");
-			}
+			RenderCubes();
 			RenderFuelBar();
 		}
 	}
@@ -220,7 +235,7 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
 	}
 	*/
 
-	if (!window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT)) {
+	if (!window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT) && !isDead) {
 		
 		if (!trapSpeed) {
 			if (window->KeyHold(GLFW_KEY_W)) {
