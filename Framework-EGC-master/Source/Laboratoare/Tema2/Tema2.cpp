@@ -29,13 +29,14 @@ void Tema2::FrameStart()
 
 
 void Tema2::Init() 
-{
+{	
 	srand((unsigned int) time(nullptr));
 	player = new Player();
 	platform = new Cube();
 	fuelBar = new FuelBar();
 	camera = new Tema2Camera::Camera();
 	camera->Set(glm::vec3(0, 2, 3.5f), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
+	projectionMatrix = glm::perspective(RADIANS(60), window->props.aspectRatio, 0.01f, 200.0f);
 
 	{
 		Shader* shader = new Shader("PlayerShader");
@@ -85,6 +86,7 @@ void Tema2::Init()
 	isDead = false;
 	trapSpeed = false;
 	isDiformed = false;
+	firstPerson = false;
 	trapSpeedTime = 20.f;
 }
 
@@ -106,6 +108,14 @@ void Tema2::RenderCubes() {
 
 void Tema2::Update(float deltaTimeSeconds)
 {
+	if (firstPerson == true) {
+		glm::vec3 pos = glm::vec3(playerCoordinates.x, playerCoordinates.y, playerCoordinates.z - 1.5f);
+		camera->Set(glm::vec3(pos), pos + glm::vec3(0.f, 0.f, -1.f), glm::vec3(0, 1, 0));
+	}
+	else {
+		glm::vec3 pos = glm::vec3(playerCoordinates.x, playerCoordinates.y + 1.5f, 4.5f);
+		camera->Set(glm::vec3(pos), pos + glm::vec3(0.f, 0.f, -1.f), glm::vec3(0, 1, 0));
+	}
 
 	if (!startGame) {
 		RenderCubes();
@@ -184,7 +194,7 @@ void Tema2::Update(float deltaTimeSeconds)
 						platform->cubes[i][j].collide = 0;
 					}
 
-					if (checkCollision(platform->cubes[i][j].xmin, platform->cubes[i][j].ymin, platform->cubes[i][j].zmax - platform->cubes[i][j].length - 1.5f,
+					if (checkCollision(platform->cubes[i][j].xmin, platform->cubes[i][j].ymin, platform->cubes[i][j].zmax - platform->cubes[i][j].length - 0.5f,
 						platform->cubes[i][j].xmin + 1.f, platform->cubes[i][j].ymax, platform->cubes[i][j].zmax - 1.f) && platform->cubes[i][j].color == 6) {
 						platform->cubes[i][j].collide = 0;
 						isDead = true;
@@ -192,7 +202,7 @@ void Tema2::Update(float deltaTimeSeconds)
 				}
 			}
 
-			if ((!inAir && playerCoordinates.x < -5.5f) || (!inAir && playerCoordinates.x > 5.5f)) {
+			if ((playerCoordinates.y == 0.5f && playerCoordinates.x < -5.5f) || (playerCoordinates.y == 0.5f && playerCoordinates.x > 5.5f)) {
 				isDead = true;
 			}
 
@@ -206,11 +216,16 @@ void Tema2::Update(float deltaTimeSeconds)
 			}
 		} else {
 			if (playerCoordinates.y > -10.f) {
-				playerCoordinates.y -= 1.f * deltaTimeSeconds;
+				playerCoordinates.y -= 2.f * deltaTimeSeconds;
 			}
 			RenderPlayer("PlayerShader");
 			RenderCubes();
 			RenderFuelBar();
+
+			if (playerCoordinates.y < -10.f) {
+				gameOver("");
+				exit(EXIT_SUCCESS);
+			}
 		}
 	}
 }
@@ -222,19 +237,6 @@ void Tema2::FrameEnd()
 
 void Tema2::OnInputUpdate(float deltaTime, int mods)
 {
-	// add key press event
-	/*
-	
-
-	if (window->KeyHold(GLFW_KEY_Q)) {
-		playerCoordinates.y -= 2.f * deltaTime;
-	}
-
-	if (window->KeyHold(GLFW_KEY_E)) {
-		playerCoordinates.y += 2.f * deltaTime;
-	}
-	*/
-
 	if (!window->MouseHold(GLFW_MOUSE_BUTTON_RIGHT) && !isDead) {
 		
 		if (!trapSpeed) {
@@ -271,6 +273,10 @@ void Tema2::OnKeyPress(int key, int mods)
 
 	if (key == GLFW_KEY_ENTER) {
 		startGame = true;
+	}
+
+	if (key == GLFW_KEY_C) {
+		firstPerson = !firstPerson;
 	}
 }
 
@@ -408,14 +414,15 @@ void Tema2::RenderSimpleMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelM
 	auto viewLocation = glGetUniformLocation(shader->GetProgramID(), "View");
 
 	// TODO : set shader uniform "View" to viewMatrix
-	glm::mat4 viewMatrix = GetSceneCamera()->GetViewMatrix();
+	glm::mat4 viewMatrix = camera->GetViewMatrix();
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 
 	// TODO : get shader location for uniform mat4 "Projection"
 	auto projectionLocation = glGetUniformLocation(shader->GetProgramID(), "Projection");
 
 	// TODO : set shader uniform "Projection" to projectionMatrix
-	glm::mat4 projectionMatrix = GetSceneCamera()->GetProjectionMatrix();
+	//glm::mat4 projectionMatrix = GetSceneCamera()->GetProjectionMatrix();
+	
 	glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
 	auto clockLocation = glGetUniformLocation(shader->GetProgramID(), "Clock");

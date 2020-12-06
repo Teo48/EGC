@@ -34,6 +34,7 @@ class Tema2 : public SimpleScene {
 		Cube* platform;
 		FuelBar* fuelBar;
 		glm::vec3 playerCoordinates;
+		glm::mat4 projectionMatrix;
 		bool checkCollision(const float xmin, const float ymin, const float zmin,
 							const float xmax, const float ymax, const float zmax);
 		void RenderCubes();
@@ -57,6 +58,8 @@ class Tema2 : public SimpleScene {
 		bool inAir;
 		bool trapSpeed;
 		bool isDiformed;
+		bool firstPerson;
+
 		typedef struct fuelBarAttr {
 			float fuel;
 			float foreGroundX;
