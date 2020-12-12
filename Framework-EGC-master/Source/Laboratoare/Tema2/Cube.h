@@ -9,7 +9,7 @@ class Cube {
 		Cube();
 		~Cube();
 		Mesh* getCube();
-		typedef enum {blue = 0, dark_blue = 1, red = 2, yellow = 3, orange = 4, green = 5, black = 6} COLORS;
+		typedef enum {blue = 0, dark_blue = 1, red = 2, yellow = 3, orange = 4, green = 5, black = 6, aqua = 7} COLORS;
 		typedef struct attributes {
 			float xmin;
 			float xmax;

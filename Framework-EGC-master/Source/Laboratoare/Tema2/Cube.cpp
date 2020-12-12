@@ -19,7 +19,7 @@ void Cube::Init() {
 	cubes[0][0].zmin = -2.f;
 	cubes[0][0].zmax = 1.f;
 	cubes[0][0].length = cubes[0][0].zmax - cubes[0][0].zmin;
-	cubes[0][0].color = dark_blue;
+	cubes[0][0].color = blue;
 	cubes[0][0].collide = 0;
 
 	for (int i = 1; i < 5; ++i) {
@@ -30,7 +30,7 @@ void Cube::Init() {
 		cubes[0][i].zmin = -2.f;
 		cubes[0][i].zmax = 1.f;
 		cubes[0][i].length = cubes[0][i].zmax - cubes[0][i].zmin;
-		cubes[0][i].color = i & 1 ? blue : dark_blue;
+		cubes[0][i].color = blue;
 		cubes[0][i].collide = 0;
 	}
 
@@ -49,17 +49,13 @@ void Cube::Init() {
 	}
 
 	for (int i = 0; i < 5; ++i) {
-		cubes[1][i].color = i & 1 ? blue : dark_blue;
+		cubes[1][i].color = blue;
 	}
 }
 
 int Cube::pickColor() {
 	int r = (int)rand() % 105;
-	if (r <= 25) {
-		return blue;
-	}
-
-	if (25 < r && r <= 50) {
+	if (r <= 50) {
 		return blue;
 	}
 
@@ -79,11 +75,18 @@ int Cube::pickColor() {
 		return green;
 	}
 
-	if (95 < r && r <= 100) {
+	if (95 < r && r <= 97) {
 		return red;
 	}
 
-	//return r & 1 ? blue : dark_blue;
+	if (97 < r && r <= 100) {
+		return aqua;
+	}
+
+	if (100 < r && r <= 102) {
+		return dark_blue;
+	}
+
 	return blue;
 }
 float Cube::randomFloat(float min, float max)

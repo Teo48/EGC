@@ -27,11 +27,11 @@ void main()
 	frag_normal = v_normal;
 	frag_texture = v_texture;
 
-	if (frag_position.y >= 0.15f) {
+	if (frag_position.y >= 0.3f) {
 		frag_color = vec3(1.f, 0.f, 0.13f);
-	} else if (frag_position.y >= 0.f && frag_position.y < 0.15f) {
+	} else if (frag_position.y >= 0.15f && frag_position.y < 0.3f) {
 		frag_color = vec3(0.f, 0.f, 0.f);
-	} else if (frag_position.y < 0.f) {
+	} else if (frag_position.y < 15.f) {
 		frag_color = vec3(1.f, 1.f, 1.f);
 	}
 

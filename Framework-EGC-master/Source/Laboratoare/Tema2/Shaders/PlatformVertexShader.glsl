@@ -25,11 +25,6 @@ void main()
 	frag_position = v_position;
 	frag_normal = v_normal;
 	frag_texture = v_texture;
-	//if (Collide == 0) {
-	//	frag_color = vec3(0.f, 0.4667f, 1.f);
-	//} else {
-	//	frag_color = vec3(0.6167f, 0.f, 1.f);
-	//}
 
 	if (Color == 0) {
 		frag_color = vec3(0.f, 0.4667f, 1.f);
@@ -57,6 +52,10 @@ void main()
 
 	if (Color == 6) {
 		frag_color = vec3(0.f, 0.f, 0.f);
+	}
+
+	if (Color == 7) {
+		frag_color = vec3(0.f, 1.f, 0.75f);
 	}
 
 	if (Collide == 1) {

@@ -2,7 +2,7 @@
 
 Player::Player() {
 	player = new Mesh("sphere");
-	player->LoadMesh(RESOURCE_PATH::MODELS + "Primitives", "sphere.obj");
+	player->LoadMesh(RESOURCE_PATH::MODELS + "Primitives", "altgigel1.obj");
 }
 
 Player::~Player() {

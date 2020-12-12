@@ -7,6 +7,7 @@
 #include "Cube.h"
 #include "FuelBar.h"
 #include "LabCamera.h"
+#include "Heart.h"
 
 class Tema2 : public SimpleScene {
 	public:
@@ -33,6 +34,7 @@ class Tema2 : public SimpleScene {
 		Player* player;
 		Cube* platform;
 		FuelBar* fuelBar;
+		Heart* heart;
 		glm::vec3 playerCoordinates;
 		glm::mat4 projectionMatrix;
 		bool checkCollision(const float xmin, const float ymin, const float zmin,
@@ -40,15 +42,22 @@ class Tema2 : public SimpleScene {
 		void RenderCubes();
 		void RenderFuelBar();
 		void RenderPlayer(const std::string shaderName);
+		void RenderHeart();
 		void reset();
 		Tema2Camera::Camera* camera;
 		bool isCollision;
 		int collide;
 		int color;
+		int animationColor;
+		int numLives;
 		bool ok;
 		bool sw1, sw2;
 		bool startGame;
 		bool isDead;
+		bool isRespawned;
+		bool canGetExtraLife;
+		bool canLoseLife;
+		bool respawnAnimation;
 		float maxFuel;
 		float platformSpeed;
 		float platformMaxSpeed;
@@ -59,7 +68,8 @@ class Tema2 : public SimpleScene {
 		bool trapSpeed;
 		bool isDiformed;
 		bool firstPerson;
-
+		bool hitGreen;
+	
 		typedef struct fuelBarAttr {
 			float fuel;
 			float foreGroundX;
