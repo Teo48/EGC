@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
-
+#include <time.h>
 #include <Core/Engine.h>
 
 using namespace std;
@@ -19,7 +19,7 @@ Laborator9::~Laborator9()
 void Laborator9::Init()
 {
 	const string textureLoc = "Source/Laboratoare/Laborator9/Textures/";
-
+	srand((unsigned int)time(nullptr));
 	// Load textures
 	{
 		Texture2D* texture = new Texture2D();
@@ -89,7 +89,11 @@ void Laborator9::Init()
 		// TODO : Complete texture coordinates for the square
 		vector<glm::vec2> textureCoords
 		{
-			glm::vec2(0.0f, 0.0f)
+			glm::vec2(0.0f, 0.0f),
+			glm::vec2(0.0f, 1.f),
+			glm::vec2(1.f, 1.f),
+			glm::vec2(1.f, 0.f)
+			
 		};
 
 		vector<unsigned short> indices =
@@ -111,6 +115,9 @@ void Laborator9::Init()
 		shader->CreateAndLink();
 		shaders[shader->GetName()] = shader;
 	}
+
+	isMixed = false;
+	rotateEarth = false;
 }
 
 void Laborator9::FrameStart()
@@ -126,11 +133,13 @@ void Laborator9::FrameStart()
 
 void Laborator9::Update(float deltaTimeSeconds)
 {
-	{
+	{	
+		rotateEarth = true;
 		glm::mat4 modelMatrix = glm::mat4(1);
 		modelMatrix = glm::translate(modelMatrix, glm::vec3(1, 1, -3));
 		modelMatrix = glm::scale(modelMatrix, glm::vec3(2));
 		RenderSimpleMesh(meshes["sphere"], shaders["ShaderLab9"], modelMatrix, mapTextures["earth"]);
+		rotateEarth = false;
 	}
 
 	{
@@ -149,11 +158,13 @@ void Laborator9::Update(float deltaTimeSeconds)
 		RenderSimpleMesh(meshes["box"], shaders["ShaderLab9"], modelMatrix, mapTextures["random"]);
 	}
 
-	{
+	{	
+		isMixed = true;
 		glm::mat4 modelMatrix = glm::mat4(1);
 		modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.5f, 0.0f));
 		modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f));
-		RenderSimpleMesh(meshes["square"], shaders["ShaderLab9"], modelMatrix, mapTextures["grass"]);
+		RenderSimpleMesh(meshes["square"], shaders["ShaderLab9"], modelMatrix, mapTextures["grass"], mapTextures["crate"]);
+		isMixed = false;
 	}
 
 	{
@@ -191,11 +202,23 @@ void Laborator9::RenderSimpleMesh(Mesh *mesh, Shader *shader, const glm::mat4 & 
 	int loc_projection_matrix = glGetUniformLocation(shader->program, "Projection");
 	glUniformMatrix4fv(loc_projection_matrix, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
+	auto isMixedLocation = glGetUniformLocation(shader->program, "is_mixed");
+	glUniform1i(isMixedLocation, isMixed);
+
+	auto clockLocation = glGetUniformLocation(shader->GetProgramID(), "Clock");
+	glUniform1f(clockLocation, (float)Engine::GetElapsedTime());
+
+	auto rotateEarthLocation = glGetUniformLocation(shader->program, "rotate_earth");
+	glUniform1i(rotateEarthLocation, rotateEarth);
+
 	if (texture1)
 	{
 		//TODO : activate texture location 0
 		//TODO : Bind the texture1 ID
 		//TODO : Send texture uniform value
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture1->GetTextureID());
+		glUniform1i(glGetUniformLocation(shader->program, "texture_1"), 0);
 	}
 
 	if (texture2)
@@ -203,6 +226,9 @@ void Laborator9::RenderSimpleMesh(Mesh *mesh, Shader *shader, const glm::mat4 & 
 		//TODO : activate texture location 1
 		//TODO : Bind the texture2 ID
 		//TODO : Send texture uniform value
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2->GetTextureID());
+		glUniform1i(glGetUniformLocation(shader->program, "texture_2"), 1);
 	}
 
 	// Draw the object
@@ -218,13 +244,28 @@ Texture2D* Laborator9::CreateRandomTexture(unsigned int width, unsigned int heig
 	unsigned char* data = new unsigned char[size];
 
 	// TODO: generate random texture data
-
+	for (int i = 0; i != size; ++i) {
+		data[i] = rand() % 0xB16B00B5; // Doar de amuzament si putina mema cu magic numbers celebre
+	}
 	// Generate and bind the new texture ID
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
 
 	// TODO: Set the texture parameters (MIN_FILTER, MAG_FILTER and WRAPPING MODE) using glTexParameteri
-
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 4);
-
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); // Nu am bagat de seama diferente intre asta si MIPMAP_LINEAR
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // My eyes might decieve me, dar nu vad vreo diferenta
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST); // Idem, probabil nu bag de seama ca fiecare
+																						// pixel are culori random 
+																						// si nu le retin la rulari diferite
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+	
+	// In cazul folosirii GL_LINEAR textura de pe cub e mai blurata
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	CheckOpenGLError();
 
@@ -232,7 +273,7 @@ Texture2D* Laborator9::CreateRandomTexture(unsigned int width, unsigned int heig
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 
 	// TODO: Generate texture mip-maps
-
+	glGenerateMipmap(GL_TEXTURE_2D);
 	CheckOpenGLError();
 
 	// Save the texture into a wrapper Texture2D class for using easier later during rendering phase

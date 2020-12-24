@@ -53,6 +53,9 @@ void Laborator8::Init()
 		materialKd = 0.5;
 		materialKs = 0.5;
 	}
+
+	is_spotlight = 0;
+	cut_off = 30.f;
 }
 
 void Laborator8::FrameStart()
@@ -145,6 +148,11 @@ void Laborator8::RenderSimpleMesh(Mesh *mesh, Shader *shader, const glm::mat4 & 
 	int object_color = glGetUniformLocation(shader->program, "object_color");
 	glUniform3f(object_color, color.r, color.g, color.b);
 
+	int is_spotlight_location = glGetUniformLocation(shader->program, "is_spotlight");
+	glUniform1i(is_spotlight_location, is_spotlight);
+
+	auto cut_off_location = glGetUniformLocation(shader->program, "cut_off");
+	glUniform1f(cut_off_location, cut_off);
 	// Bind model matrix
 	GLint loc_model_matrix = glGetUniformLocation(shader->program, "Model");
 	glUniformMatrix4fv(loc_model_matrix, 1, GL_FALSE, glm::value_ptr(modelMatrix));
@@ -185,12 +193,46 @@ void Laborator8::OnInputUpdate(float deltaTime, int mods)
 		if (window->KeyHold(GLFW_KEY_D)) lightPosition += right * deltaTime * speed;
 		if (window->KeyHold(GLFW_KEY_E)) lightPosition += up * deltaTime * speed;
 		if (window->KeyHold(GLFW_KEY_Q)) lightPosition -= up * deltaTime * speed;
+
+		if (window->KeyHold(GLFW_KEY_UP)) {
+			lightX += 2.f * deltaTime * speed;
+		}
+
+		if (window->KeyHold(GLFW_KEY_DOWN)) {
+			lightX -= 2.f * deltaTime * speed;
+		}
+
+		if (window->KeyHold(GLFW_KEY_LEFT)) {
+			lightY += 2.f * deltaTime * speed;
+		}
+
+		if (window->KeyHold(GLFW_KEY_RIGHT)) {
+			lightY -= 2.f * deltaTime * speed;
+		}
+
+		if (window->KeyHold(GLFW_KEY_H)) {
+			cut_off += 15.f * deltaTime * speed;
+		}
+
+		if (window->KeyHold(GLFW_KEY_L)) {
+			cut_off -= 15.f * deltaTime * speed;
+		}
+
+		auto rotationMatrix = glm::mat4(1);
+		rotationMatrix = glm::rotate(rotationMatrix, lightX, right);
+		rotationMatrix = glm::rotate(rotationMatrix, lightY, forward);
+		
+		lightDirection = glm::vec3(0, -1, 0);
+		lightDirection = glm::vec3(rotationMatrix * glm::vec4(lightDirection, 0.f));
 	}
 }
 
 void Laborator8::OnKeyPress(int key, int mods)
 {
 	// add key press event
+	if (key == GLFW_KEY_F) {
+		is_spotlight ^= 1;
+	}
 }
 
 void Laborator8::OnKeyRelease(int key, int mods)
