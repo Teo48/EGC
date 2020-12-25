@@ -61,8 +61,20 @@ void Tema3::Init()
 
 	{
 		Texture2D* texture = new Texture2D();
-		texture->Load2D("D:\\EGC\\Framework-EGC-master\\Framework-EGC-master\\Source\\Laboratoare\\Tema3\\Textures\\blue.jpg", GL_REPEAT);
+		texture->Load2D((textureLoc + "blueholocron.jpg").c_str(), GL_REPEAT);
 		mapTextures["jediHolocron"] = texture;
+	}
+
+	{
+		Texture2D* texture = new Texture2D();
+		texture->Load2D((textureLoc + "blue.jpg").c_str(), GL_REPEAT);
+		mapTextures["jediBackground"] = texture;
+	}
+
+	{
+		Texture2D* texture = new Texture2D();
+		texture->Load2D((textureLoc + "redbackground.jpg").c_str(), GL_REPEAT);
+		mapTextures["sithBackground"] = texture;
 	}
 
 	{
@@ -195,18 +207,28 @@ void Tema3::Update(float deltaTimeSeconds)
 	{
 		glm::mat4 modelMatrix = glm::mat4(1);
 		modelMatrix = glm::translate(modelMatrix, glm::vec3(0.f, 3.f, 0.f));
-		modelMatrix = glm::scale(modelMatrix, glm::vec3(0.01f));
+		modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f));
 		modelMatrix = glm::rotate(modelMatrix, RADIANS(75.0f + (float)Engine::GetElapsedTime() * 10.f), glm::vec3(0, 1, 0));
-		RenderMeshTexture(meshes["sithHolocron"], shaders["HolocronShader"], modelMatrix, -1,
-			-1, mapTextures["sithHolocron"], nullptr);
+		RenderMeshTexture(meshes["jediHolocron"], shaders["HolocronShader"], modelMatrix, -1,
+			-1, mapTextures["jediHolocron"], nullptr);
 	}
 
+	/*
 	{
 		glm::mat4 modelMatrix = glm::mat4(1);
 		modelMatrix = glm::scale(modelMatrix, glm::vec3(250.f, 200.f, 200.f));
 		RenderMeshTexture(meshes["background"], shaders["HolocronShader"], modelMatrix, -1,
-			-1, mapTextures["jediHolocron"], nullptr);
+			-1, mapTextures["sithBackground"], nullptr);
 	}
+	*/
+	{
+		glm::mat4 modelMatrix = glm::mat4(1);
+		modelMatrix = glm::scale(modelMatrix, glm::vec3(250.f, 200.f, 200.f));
+		RenderMeshTexture(meshes["background"], shaders["HolocronShader"], modelMatrix, -1,
+			-1, mapTextures["jediBackground"], nullptr);
+	}
+
+	
 
 	if (firstPerson == true) {
 		glm::vec3 pos = glm::vec3(playerCoordinates.x, playerCoordinates.y + 0.65f, playerCoordinates.z - 1.5f);
