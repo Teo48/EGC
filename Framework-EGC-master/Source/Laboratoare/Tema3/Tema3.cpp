@@ -48,6 +48,12 @@ void Tema3::Init()
 	}
 
 	{
+		Texture2D* texture = new Texture2D();
+		texture->Load2D((textureLoc + "floor.png").c_str(), GL_REPEAT);
+		mapTextures["floor"] = texture;
+	}
+
+	{
 		Shader* shader = new Shader("PlayerShader");
 		shader->AddShader("Source/Laboratoare/Tema3/Shaders/PlayerVertexShader.glsl", GL_VERTEX_SHADER);
 		shader->AddShader("Source/Laboratoare/Tema3/Shaders/PlayerFragmentShader.glsl", GL_FRAGMENT_SHADER);
@@ -130,7 +136,8 @@ void Tema3::RenderCubes() {
 				modelMatrix *= Transform3D::Scale(2.f, 0.1f, -platform->cubes[i][j].length);
 				modelMatrix *= Transform3D::Translate(0.5f, 0.f, 0.5f);
 				
-				RenderSimpleMesh(platform->getCube(), shaders["PlatformShader"], modelMatrix, platform->cubes[i][j].color, platform->cubes[i][j].collide);
+				RenderMeshTexture(platform->getCube(), shaders["TexturePlatformShader"], modelMatrix, platform->cubes[i][j].color,
+					platform->cubes[i][j].collide, mapTextures["floor"], nullptr);
 			}
 			else {
 				glm::mat4 modelMatrix = glm::mat4(1);

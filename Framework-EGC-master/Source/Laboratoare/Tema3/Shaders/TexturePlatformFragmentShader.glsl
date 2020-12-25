@@ -4,9 +4,9 @@ uniform sampler2D texture_1;
 uniform sampler2D texture_2;
  
 in vec2 texcoord;
+in vec3 frag_color;
 uniform float Clock;
-uniform int Collide;
-uniform int Color;
+
 
 layout(location = 0) out vec4 out_color;
 
@@ -24,5 +24,5 @@ void main()
 		discard;
 	}
 
-	out_color = first_color;
+	out_color = first_color * vec4(frag_color, 0.5f);
 }
