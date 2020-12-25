@@ -16,7 +16,7 @@ void Cube::Init() {
 	cubes[0][0].xmax = -2.5f;
 	cubes[0][0].ymin = -0.05f;
 	cubes[0][0].ymax = 0.05f;
-	cubes[0][0].zmin = -2.f;
+	cubes[0][0].zmin = -5.f;
 	cubes[0][0].zmax = 1.f;
 	cubes[0][0].length = cubes[0][0].zmax - cubes[0][0].zmin;
 	cubes[0][0].color = blue;
@@ -27,7 +27,7 @@ void Cube::Init() {
 		cubes[0][i].xmax = cubes[0][i].xmin + 2.f;
 		cubes[0][i].ymin = -0.05f;
 		cubes[0][i].ymax = 0.05f;
-		cubes[0][i].zmin = -2.f;
+		cubes[0][i].zmin = -5.f;
 		cubes[0][i].zmax = 1.f;
 		cubes[0][i].length = cubes[0][i].zmax - cubes[0][i].zmin;
 		cubes[0][i].color = blue;
@@ -41,7 +41,7 @@ void Cube::Init() {
 			cubes[j][i].ymin = -0.05f;
 			cubes[j][i].ymax = 0.05f;
 			cubes[j][i].zmax = cubes[j - 1][i].zmin;
-			cubes[j][i].zmin = cubes[j][i].zmax - 3.f;
+			cubes[j][i].zmin = cubes[j][i].zmax - 5.f;
 			cubes[j][i].length = cubes[j][i].zmax - cubes[j][i].zmin;
 			cubes[j][i].color = pickColor();
 			cubes[j][i].collide = 0;

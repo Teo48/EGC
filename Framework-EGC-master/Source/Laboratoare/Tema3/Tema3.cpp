@@ -54,6 +54,18 @@ void Tema3::Init()
 	}
 
 	{
+		Texture2D* texture = new Texture2D();
+		texture->Load2D((textureLoc + "red.jpg").c_str(), GL_REPEAT);
+		mapTextures["sithHolocron"] = texture;
+	}
+
+	{
+		Texture2D* texture = new Texture2D();
+		texture->Load2D("D:\\EGC\\Framework-EGC-master\\Framework-EGC-master\\Source\\Laboratoare\\Tema3\\Textures\\blue.jpg", GL_REPEAT);
+		mapTextures["jediHolocron"] = texture;
+	}
+
+	{
 		Shader* shader = new Shader("PlayerShader");
 		shader->AddShader("Source/Laboratoare/Tema3/Shaders/PlayerVertexShader.glsl", GL_VERTEX_SHADER);
 		shader->AddShader("Source/Laboratoare/Tema3/Shaders/PlayerFragmentShader.glsl", GL_FRAGMENT_SHADER);
@@ -99,6 +111,32 @@ void Tema3::Init()
 		shader->AddShader("Source/Laboratoare/Tema3/Shaders/TexturePlatformFragmentShader.glsl", GL_FRAGMENT_SHADER);
 		shader->CreateAndLink();
 		shaders[shader->GetName()] = shader;
+	}
+
+	{
+		Shader* shader = new Shader("HolocronShader");
+		shader->AddShader("Source/Laboratoare/Tema3/Shaders/HolocronVertexShader.glsl", GL_VERTEX_SHADER);
+		shader->AddShader("Source/Laboratoare/Tema3/Shaders/HolocronFragmentShader.glsl", GL_FRAGMENT_SHADER);
+		shader->CreateAndLink();
+		shaders[shader->GetName()] = shader;
+	}
+
+	{
+		Mesh* mesh = new Mesh("sithHolocron");
+		mesh->LoadMesh(RESOURCE_PATH::MODELS + "Primitives", "sith.obj");
+		meshes[mesh->GetMeshID()] = mesh;
+	}
+
+	{
+		Mesh* mesh = new Mesh("jediHolocron");
+		mesh->LoadMesh(RESOURCE_PATH::MODELS + "Primitives", "jediholocron.obj");
+		meshes[mesh->GetMeshID()] = mesh;
+	}
+
+	{
+		Mesh* mesh = new Mesh("background");
+		mesh->LoadMesh(RESOURCE_PATH::MODELS + "Primitives", "box.obj");
+		meshes[mesh->GetMeshID()] = mesh;
 	}
 
 	playerCoordinates = glm::vec3(0.f, 0.65f, 0.f);
@@ -153,7 +191,23 @@ void Tema3::RenderCubes() {
 }
 
 void Tema3::Update(float deltaTimeSeconds)
-{
+{	
+	{
+		glm::mat4 modelMatrix = glm::mat4(1);
+		modelMatrix = glm::translate(modelMatrix, glm::vec3(0.f, 3.f, 0.f));
+		modelMatrix = glm::scale(modelMatrix, glm::vec3(0.01f));
+		modelMatrix = glm::rotate(modelMatrix, RADIANS(75.0f + (float)Engine::GetElapsedTime() * 10.f), glm::vec3(0, 1, 0));
+		RenderMeshTexture(meshes["sithHolocron"], shaders["HolocronShader"], modelMatrix, -1,
+			-1, mapTextures["sithHolocron"], nullptr);
+	}
+
+	{
+		glm::mat4 modelMatrix = glm::mat4(1);
+		modelMatrix = glm::scale(modelMatrix, glm::vec3(250.f, 200.f, 200.f));
+		RenderMeshTexture(meshes["background"], shaders["HolocronShader"], modelMatrix, -1,
+			-1, mapTextures["jediHolocron"], nullptr);
+	}
+
 	if (firstPerson == true) {
 		glm::vec3 pos = glm::vec3(playerCoordinates.x, playerCoordinates.y + 0.65f, playerCoordinates.z - 1.5f);
 		camera->Set(glm::vec3(pos), pos + glm::vec3(0.f, 0.f, -1.f), glm::vec3(0, 1, 0));
