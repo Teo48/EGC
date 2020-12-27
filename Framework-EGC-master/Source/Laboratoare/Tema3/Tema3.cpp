@@ -35,6 +35,7 @@ void Tema3::Init()
 	platform = new Cube();
 	fuelBar = new FuelBar();
 	heart = new Heart();
+	holocron = new Holocron();
 	camera = new Tema3Camera::Camera();
 	camera->Set(glm::vec3(0, 2, 3.5f), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
 	projectionMatrix = glm::perspective(RADIANS(60), window->props.aspectRatio, 0.01f, 200.0f);
@@ -174,6 +175,52 @@ void Tema3::Init()
 	canLoseLife = true;
 	respawnAnimation = false;
 	trapSpeedTime = 30.f;
+
+	holocron->Init();
+	
+	for (int k = 0; k < 10;) {
+		auto currentLine = rand() % 50;
+		for (int j = 0; j < 5; ++j) {
+			auto currentCollumn = rand() % 5;
+			if (platform->cubes[currentLine][currentCollumn].color == 0) {
+				int position = currentCollumn;
+				if (currentLine - 1 < 0) {
+					++currentLine;
+				}
+				float zetmin = platform->cubes[currentLine - 1][currentCollumn].zmin;
+				float zetmax = platform->cubes[currentLine - 1][currentCollumn].zmax;
+				float xmin = platform->cubes[currentLine - 1][currentCollumn].xmin;
+				float xmax = platform->cubes[currentLine - 1][currentCollumn].xmax;
+				auto data = holocron->att;
+				if (position & 1) {
+					data.xmin = xmin + 1.f - 0.517f;
+					data.xmax = xmax - 1.f + 0.517;
+					data.ymin = 0.f;
+					data.ymax = 0.96f;
+					data.zmin = zetmin - 3.f + 0.517f;
+					data.zmax = zetmax + 3.f - 0.517f;
+					data.type = 1;
+					data.collumn = currentCollumn;
+					data.line = currentLine - 1;
+				}
+				else {
+					data.xmin = xmin + 1.f - 0.44f;
+					data.xmax = xmax - 1.f + 0.44;
+					data.ymin = 0.16f;
+					data.ymax = 1.04f;
+					data.zmin = zetmin - 3.f + 0.44f;
+					data.zmax = zetmax + 3.f - 0.44f;
+					data.type = 0;
+					data.collumn = currentCollumn;
+					data.line = currentLine - 1;
+				}
+				holocron->holocrons.emplace_back(data);
+				++k;
+				break;
+			}
+		}
+	}
+	
 }
 
 void Tema3::RenderCubes() {
@@ -204,14 +251,18 @@ void Tema3::RenderCubes() {
 
 void Tema3::Update(float deltaTimeSeconds)
 {	
+	/*
 	{
 		glm::mat4 modelMatrix = glm::mat4(1);
-		modelMatrix = glm::translate(modelMatrix, glm::vec3(0.f, 3.f, 0.f));
+		modelMatrix = glm::translate(modelMatrix, glm::vec3(4.f, 0.5f, -3.f));
 		modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f));
-		modelMatrix = glm::rotate(modelMatrix, RADIANS(75.0f + (float)Engine::GetElapsedTime() * 10.f), glm::vec3(0, 1, 0));
+		modelMatrix = glm::rotate(modelMatrix, RADIANS(75.0f + (float)Engine::GetElapsedTime() * 100.f), glm::vec3(1, 0, 0));
 		RenderMeshTexture(meshes["jediHolocron"], shaders["HolocronShader"], modelMatrix, -1,
 			-1, mapTextures["jediHolocron"], nullptr);
 	}
+	*/
+
+	
 
 	/*
 	{
@@ -221,14 +272,6 @@ void Tema3::Update(float deltaTimeSeconds)
 			-1, mapTextures["sithBackground"], nullptr);
 	}
 	*/
-	{
-		glm::mat4 modelMatrix = glm::mat4(1);
-		modelMatrix = glm::scale(modelMatrix, glm::vec3(250.f, 200.f, 200.f));
-		RenderMeshTexture(meshes["background"], shaders["HolocronShader"], modelMatrix, -1,
-			-1, mapTextures["jediBackground"], nullptr);
-	}
-
-	
 
 	if (firstPerson == true) {
 		glm::vec3 pos = glm::vec3(playerCoordinates.x, playerCoordinates.y + 0.65f, playerCoordinates.z - 1.5f);
@@ -237,6 +280,28 @@ void Tema3::Update(float deltaTimeSeconds)
 	else {
 		glm::vec3 pos = glm::vec3(playerCoordinates.x, playerCoordinates.y + 2.0f, 5.5f);
 		camera->Set(glm::vec3(pos), pos + glm::vec3(0.f, 0.f, -1.f), glm::vec3(0, 1, 0));
+	}
+
+	{
+		glm::mat4 modelMatrix = glm::mat4(1);
+		modelMatrix = glm::scale(modelMatrix, glm::vec3(250.f, 200.f, 200.f));
+		RenderMeshTexture(meshes["background"], shaders["HolocronShader"], modelMatrix, -1,
+			-1, mapTextures["jediBackground"], nullptr);
+	}
+
+	for (int i = 0; i < 10; ++i) {
+		glm::mat4 modelMatrix = glm::mat4(1);
+		modelMatrix = glm::translate(modelMatrix, glm::vec3(holocron->holocrons[i].xmin, holocron->holocrons[i].ymin + 0.5f, holocron->holocrons[i].zmin));
+		if (holocron->holocrons[i].type == 0) {
+			modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f));
+			RenderMeshTexture(holocron->getJediHolocron(), shaders["HolocronShader"], modelMatrix, -1,
+				-1, mapTextures["jediHolocron"], nullptr);
+		}
+		else {
+			modelMatrix = glm::scale(modelMatrix, glm::vec3(0.01f));
+			RenderMeshTexture(holocron->getSithHolocron(), shaders["HolocronShader"], modelMatrix, -1,
+				-1, mapTextures["sithHolocron"], nullptr);
+		}
 	}
 
 	RenderHeart();
@@ -301,6 +366,14 @@ void Tema3::Update(float deltaTimeSeconds)
 				}
 			}
 
+			// Update holocrons' coordinates
+			
+			for (int i = 0; i < 10; ++i) {
+				auto &it = holocron->holocrons[i];
+				it.zmax += platformSpeed * deltaTimeSeconds;
+				it.zmin += platformSpeed * deltaTimeSeconds;
+			}
+		
 			reset();
 
 			for (int i = 0; i < 50; ++i) {
@@ -516,6 +589,41 @@ void Tema3::reset()
 		}
 		sw1 = false;
 	}
+
+	for (int i = 0; i < 10; ++i) {
+		auto& it = holocron->holocrons[i];
+		if (it.zmax > 15.f) {
+			if (it.type == 1) {
+				it.zmax = platform->cubes[it.line][it.collumn].zmax + 3.f - 0.517f;
+				it.zmin = platform->cubes[it.line][it.collumn].zmin - 3.f + 0.517f;
+			}
+			else {
+				it.zmax = platform->cubes[it.line][it.collumn].zmax + 3.f - 0.44f;
+				it.zmin = platform->cubes[it.line][it.collumn].zmin - 3.f + 0.44f;
+			}
+		}
+	}
+}
+
+int Tema3::getColumn(const int x)
+{
+	if (x >= -4.5 && x <= -2.5) {
+		return -2;
+	}
+
+	if (x >= -2.5 && x <= -0.5) {
+		return -1;
+	}
+
+	if (x >= -0.5 && x <= 1.5) {
+		return 0;
+	}
+
+	if (x >= 1.5 && x <= 3.5) {
+		return 1;
+	}
+
+	return 2;
 }
 
 void Tema3::RenderFuelBar()

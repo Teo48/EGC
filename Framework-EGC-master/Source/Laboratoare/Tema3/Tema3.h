@@ -8,6 +8,7 @@
 #include "FuelBar.h"
 #include "LabCamera.h"
 #include "Heart.h"
+#include "Holocron.h"
 
 class Tema3 : public SimpleScene {
 	public:
@@ -35,6 +36,7 @@ class Tema3 : public SimpleScene {
 		Cube* platform;
 		FuelBar* fuelBar;
 		Heart* heart;
+		Holocron* holocron;
 		glm::vec3 playerCoordinates;
 		glm::mat4 projectionMatrix;
 		bool checkCollision(const float xmin, const float ymin, const float zmin,
@@ -44,6 +46,7 @@ class Tema3 : public SimpleScene {
 		void RenderPlayer(const std::string shaderName);
 		void RenderHeart();
 		void reset();
+		int getColumn(const int x);
 		Tema3Camera::Camera* camera;
 		bool isCollision;
 		int collide;
