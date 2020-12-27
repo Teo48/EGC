@@ -175,6 +175,7 @@ void Tema3::Init()
 	canLoseLife = true;
 	respawnAnimation = false;
 	trapSpeedTime = 30.f;
+	score = 0;
 
 	holocron->Init();
 	
@@ -187,32 +188,32 @@ void Tema3::Init()
 				if (currentLine - 1 < 0) {
 					++currentLine;
 				}
-				float zetmin = platform->cubes[currentLine - 1][currentCollumn].zmin;
-				float zetmax = platform->cubes[currentLine - 1][currentCollumn].zmax;
-				float xmin = platform->cubes[currentLine - 1][currentCollumn].xmin;
-				float xmax = platform->cubes[currentLine - 1][currentCollumn].xmax;
+				float zetmin = platform->cubes[currentLine][currentCollumn].zmin;
+				float zetmax = platform->cubes[currentLine][currentCollumn].zmax;
+				float xmin = platform->cubes[currentLine][currentCollumn].xmin;
+				float xmax = platform->cubes[currentLine][currentCollumn].xmax;
 				auto data = holocron->att;
 				if (position & 1) {
 					data.xmin = xmin + 1.f - 0.517f;
 					data.xmax = xmax - 1.f + 0.517;
-					data.ymin = 0.f;
-					data.ymax = 0.96f;
-					data.zmin = zetmin - 3.f + 0.517f;
-					data.zmax = zetmax + 3.f - 0.517f;
+					data.ymin = 0.5f;
+					data.ymax = 1.46f;
+					data.zmin = zetmin + 3.f - 0.517f;
+					data.zmax = zetmax - 3.f + 0.517f;
 					data.type = 1;
 					data.collumn = currentCollumn;
-					data.line = currentLine - 1;
+					data.line = currentLine;
 				}
 				else {
 					data.xmin = xmin + 1.f - 0.44f;
 					data.xmax = xmax - 1.f + 0.44;
-					data.ymin = 0.16f;
-					data.ymax = 1.04f;
-					data.zmin = zetmin - 3.f + 0.44f;
-					data.zmax = zetmax + 3.f - 0.44f;
+					data.ymin = 0.85f;
+					data.ymax = 1.85f;
+					data.zmin = zetmin + 3.f - 0.44f;
+					data.zmax = zetmax - 3.f + 0.44f;
 					data.type = 0;
 					data.collumn = currentCollumn;
-					data.line = currentLine - 1;
+					data.line = currentLine;
 				}
 				holocron->holocrons.emplace_back(data);
 				++k;
@@ -291,14 +292,17 @@ void Tema3::Update(float deltaTimeSeconds)
 
 	for (int i = 0; i < 10; ++i) {
 		glm::mat4 modelMatrix = glm::mat4(1);
-		modelMatrix = glm::translate(modelMatrix, glm::vec3(holocron->holocrons[i].xmin, holocron->holocrons[i].ymin + 0.5f, holocron->holocrons[i].zmin));
+		modelMatrix *= Transform3D::Translate(holocron->holocrons[i].xmin, holocron->holocrons[i].ymin, holocron->holocrons[i].zmin);
+
 		if (holocron->holocrons[i].type == 0) {
-			modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f));
+			modelMatrix *= Transform3D::RotateOX(RADIANS(75.f) + (float)(Engine::GetElapsedTime()));
+			modelMatrix *= Transform3D::Scale(0.5f, 0.5f, 0.5f);
 			RenderMeshTexture(holocron->getJediHolocron(), shaders["HolocronShader"], modelMatrix, -1,
 				-1, mapTextures["jediHolocron"], nullptr);
 		}
 		else {
-			modelMatrix = glm::scale(modelMatrix, glm::vec3(0.01f));
+			modelMatrix *= Transform3D::RotateOY(RADIANS(75.f) + (float)(Engine::GetElapsedTime()));
+			modelMatrix *= Transform3D::Scale(0.01f, 0.01f, 0.01f);
 			RenderMeshTexture(holocron->getSithHolocron(), shaders["HolocronShader"], modelMatrix, -1,
 				-1, mapTextures["sithHolocron"], nullptr);
 		}
@@ -443,6 +447,13 @@ void Tema3::Update(float deltaTimeSeconds)
 				}
 			}
 
+			for (const auto& i : holocron->holocrons) {
+				if (holocronCollisison(i.xmin - 0.5f, i.ymin, i.zmin, i.xmax - 0.5f, i.ymax, i.zmax)) {
+					score += 100;
+					std::cout << score << '\n';
+				}
+			}
+
 			// If the players gets outside the playing field, he dies
 			if ((playerCoordinates.y == 0.65f && playerCoordinates.x < -5.5f) || (playerCoordinates.y == 0.65f && playerCoordinates.x > 5.5f)) {
 				isDead = true;
@@ -561,6 +572,19 @@ bool Tema3::checkCollision(const float xmin, const float ymin, const float zmin,
 
 }
 
+bool Tema3::holocronCollisison(const float xmin, const float ymin, const float zmin, const float xmax, const float ymax, const float zmax)
+{
+	auto x = std::max(xmin, std::min(playerCoordinates.x, xmax));
+	auto y = std::max(ymin, std::min(playerCoordinates.y, ymax));
+	auto z = std::max(zmin, std::min(playerCoordinates.z, zmax));
+
+	auto distance = sqrt((x - playerCoordinates.x) * (x - playerCoordinates.x) +
+		(y - playerCoordinates.y) * (y - playerCoordinates.y) +
+		(z - playerCoordinates.z) * (z - playerCoordinates.z));
+
+	return distance < 0.65f;
+}
+
 void Tema3::reset()
 {
 	if (platform->cubes[21][0].zmax > 10.f && sw1 == false) {
@@ -594,12 +618,12 @@ void Tema3::reset()
 		auto& it = holocron->holocrons[i];
 		if (it.zmax > 15.f) {
 			if (it.type == 1) {
-				it.zmax = platform->cubes[it.line][it.collumn].zmax + 3.f - 0.517f;
-				it.zmin = platform->cubes[it.line][it.collumn].zmin - 3.f + 0.517f;
+				it.zmax = platform->cubes[it.line][it.collumn].zmax - 3.f + 0.517f;
+				it.zmin = platform->cubes[it.line][it.collumn].zmin + 3.f - 0.517f;
 			}
 			else {
-				it.zmax = platform->cubes[it.line][it.collumn].zmax + 3.f - 0.44f;
-				it.zmin = platform->cubes[it.line][it.collumn].zmin - 3.f + 0.44f;
+				it.zmax = platform->cubes[it.line][it.collumn].zmax - 3.f + 0.44f;
+				it.zmin = platform->cubes[it.line][it.collumn].zmin + 3.f - 0.44f;
 			}
 		}
 	}

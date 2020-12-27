@@ -41,6 +41,8 @@ class Tema3 : public SimpleScene {
 		glm::mat4 projectionMatrix;
 		bool checkCollision(const float xmin, const float ymin, const float zmin,
 							const float xmax, const float ymax, const float zmax);
+		bool holocronCollisison(const float xmin, const float ymin, const float zmin,
+								const float xmax, const float ymax, const float zmax);
 		void RenderCubes();
 		void RenderFuelBar();
 		void RenderPlayer(const std::string shaderName);
@@ -53,6 +55,7 @@ class Tema3 : public SimpleScene {
 		int color;
 		int animationColor;
 		int numLives;
+		int score;
 		bool ok;
 		bool sw1, sw2;
 		bool startGame;
