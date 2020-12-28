@@ -36,6 +36,7 @@ void Tema3::Init()
 	fuelBar = new FuelBar();
 	heart = new Heart();
 	holocron = new Holocron();
+	quad = new Quad();
 	camera = new Tema3Camera::Camera();
 	camera->Set(glm::vec3(0, 2, 3.5f), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
 	projectionMatrix = glm::perspective(RADIANS(60), window->props.aspectRatio, 0.01f, 200.0f);
@@ -76,6 +77,18 @@ void Tema3::Init()
 		Texture2D* texture = new Texture2D();
 		texture->Load2D((textureLoc + "redbackground.jpg").c_str(), GL_REPEAT);
 		mapTextures["sithBackground"] = texture;
+	}
+
+	{
+		Texture2D* texture = new Texture2D();
+		texture->Load2D((textureLoc + "windu.png").c_str(), GL_REPEAT);
+		mapTextures["windu"] = texture;
+	}
+
+	{
+		Texture2D* texture = new Texture2D();
+		texture->Load2D((textureLoc + "purple.png").c_str(), GL_REPEAT);
+		mapTextures["purple"] = texture;
 	}
 
 	{
@@ -135,6 +148,14 @@ void Tema3::Init()
 	}
 
 	{
+		Shader* shader = new Shader("QuadShader");
+		shader->AddShader("Source/Laboratoare/Tema3/Shaders/QuadVertexShader.glsl", GL_VERTEX_SHADER);
+		shader->AddShader("Source/Laboratoare/Tema3/Shaders/QuadFragmentShader.glsl", GL_FRAGMENT_SHADER);
+		shader->CreateAndLink();
+		shaders[shader->GetName()] = shader;
+	}
+	/*
+	{
 		Mesh* mesh = new Mesh("sithHolocron");
 		mesh->LoadMesh(RESOURCE_PATH::MODELS + "Primitives", "sith.obj");
 		meshes[mesh->GetMeshID()] = mesh;
@@ -145,13 +166,13 @@ void Tema3::Init()
 		mesh->LoadMesh(RESOURCE_PATH::MODELS + "Primitives", "jediholocron.obj");
 		meshes[mesh->GetMeshID()] = mesh;
 	}
-
+	*/
 	{
 		Mesh* mesh = new Mesh("background");
 		mesh->LoadMesh(RESOURCE_PATH::MODELS + "Primitives", "box.obj");
 		meshes[mesh->GetMeshID()] = mesh;
 	}
-
+	
 	playerCoordinates = glm::vec3(0.f, 0.65f, 0.f);
 	isCollision = false;
 	collide = 0;
@@ -160,6 +181,7 @@ void Tema3::Init()
 	sw1 = sw2 = false;
 	platform->Init();
 	fuelBarCoord = new fuelBarAttr(1.f, -0.985f, 0.875f, -0.99f, 0.87f);
+	scoreBarCoord = new scoreBarAttr(0, 1.25f, 1.15f);
 	maxFuel = 1.f;
 	platformSpeed = 10.f;
 	platformMaxSpeed = 25.f;
@@ -216,6 +238,7 @@ void Tema3::Init()
 					data.line = currentLine;
 				}
 				holocron->holocrons.emplace_back(data);
+				is_holocron_hit.emplace_back(false);
 				++k;
 				break;
 			}
@@ -288,6 +311,25 @@ void Tema3::Update(float deltaTimeSeconds)
 		modelMatrix = glm::scale(modelMatrix, glm::vec3(250.f, 200.f, 200.f));
 		RenderMeshTexture(meshes["background"], shaders["HolocronShader"], modelMatrix, -1,
 			-1, mapTextures["jediBackground"], nullptr);
+	}
+
+	{
+		glm::mat4 modelMatrix = glm::mat4(1);
+		modelMatrix *= Transform3D::Translate(0.87f, 0.75f, 0.f);
+		modelMatrix *= Transform3D::Scale(0.25f, 0.25f, 1.f);
+		modelMatrix = glm::rotate(modelMatrix, RADIANS(90), glm::vec3(0, 0, 1));
+		RenderMesh2DTexture(quad->getQuad(), shaders["QuadShader"], modelMatrix, mapTextures["windu"]);
+	}
+
+	{
+		glm::mat4 modelMatrix = glm::mat4(1);
+
+		modelMatrix *= Transform3D::Translate(scoreBarCoord->x, scoreBarCoord->y, 0.f);
+		modelMatrix *= Transform3D::Translate(-0.5f, -0.5f, 0.f);
+		modelMatrix *= Transform3D::Scale(-scoreBarCoord->score, 0.2f, 1.f);
+		modelMatrix *= Transform3D::Translate(0.5f, 0.5f, 0.f);
+		modelMatrix = glm::rotate(modelMatrix, RADIANS(270), glm::vec3(0, 0, 1));
+		RenderMesh2DTexture(quad->getQuad(), shaders["QuadShader"], modelMatrix, mapTextures["purple"]);
 	}
 
 	for (int i = 0; i < 10; ++i) {
@@ -447,10 +489,12 @@ void Tema3::Update(float deltaTimeSeconds)
 				}
 			}
 
-			for (const auto& i : holocron->holocrons) {
-				if (holocronCollisison(i.xmin - 0.5f, i.ymin, i.zmin, i.xmax - 0.5f, i.ymax, i.zmax)) {
-					score += 100;
-					std::cout << score << '\n';
+			for (int i = 0; i < 10; ++i) {
+				const auto& it = holocron->holocrons[i];
+				if (holocronCollisison(it.xmin - 0.5f, it.ymin, it.zmin, it.xmax - 0.5f, it.ymax, it.zmax) && is_holocron_hit[i] == false) {
+					is_holocron_hit[i] = true;
+					scoreBarCoord->score += 0.01f;
+					break;
 				}
 			}
 
@@ -617,6 +661,7 @@ void Tema3::reset()
 	for (int i = 0; i < 10; ++i) {
 		auto& it = holocron->holocrons[i];
 		if (it.zmax > 15.f) {
+			is_holocron_hit[i] = false;
 			if (it.type == 1) {
 				it.zmax = platform->cubes[it.line][it.collumn].zmax - 3.f + 0.517f;
 				it.zmin = platform->cubes[it.line][it.collumn].zmin + 3.f - 0.517f;
@@ -755,6 +800,33 @@ void Tema3::RenderMeshTexture(Mesh* mesh, Shader* shader, const glm::mat4& model
 	}
 
 	// Draw the object
+	glBindVertexArray(mesh->GetBuffers()->VAO);
+	glDrawElements(mesh->GetDrawMode(), static_cast<int>(mesh->indices.size()), GL_UNSIGNED_SHORT, 0);
+
+}
+
+void Tema3::RenderMesh2DTexture(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, Texture2D* texture1)
+{
+	if (!mesh || !shader || !shader->GetProgramID())
+		return;
+
+	// render an object using the specified shader and the specified position
+	glUseProgram(shader->program);
+
+	// TODO : get shader location for uniform mat4 "Model"
+	auto modelLocation = glGetUniformLocation(shader->program, "Model");
+
+	// TODO : set shader uniform "Model" to modelMatrix
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+
+
+	if (texture1)
+	{
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture1->GetTextureID());
+		glUniform1i(glGetUniformLocation(shader->program, "texture_1"), 0);
+	}
+
 	glBindVertexArray(mesh->GetBuffers()->VAO);
 	glDrawElements(mesh->GetDrawMode(), static_cast<int>(mesh->indices.size()), GL_UNSIGNED_SHORT, 0);
 

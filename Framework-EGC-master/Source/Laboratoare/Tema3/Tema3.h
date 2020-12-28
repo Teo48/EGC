@@ -9,6 +9,7 @@
 #include "LabCamera.h"
 #include "Heart.h"
 #include "Holocron.h"
+#include "Quad.h"
 
 class Tema3 : public SimpleScene {
 	public:
@@ -24,6 +25,7 @@ class Tema3 : public SimpleScene {
 		void RenderSimpleMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, int color, int collide);
 		void Render2DMesh(Mesh* mesh, Shader* shader, const glm::mat4 &modelMatrix, const glm::vec3 &color);
 		void RenderMeshTexture(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, int color, int collide, Texture2D* texture1, Texture2D* texture2);
+		void RenderMesh2DTexture(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, Texture2D* texture1);
 		void OnInputUpdate(float deltaTime, int mods) override;
 		void OnKeyPress(int key, int mods) override;
 		void OnKeyRelease(int key, int mods) override;
@@ -37,6 +39,7 @@ class Tema3 : public SimpleScene {
 		FuelBar* fuelBar;
 		Heart* heart;
 		Holocron* holocron;
+		Quad* quad;
 		glm::vec3 playerCoordinates;
 		glm::mat4 projectionMatrix;
 		bool checkCollision(const float xmin, const float ymin, const float zmin,
@@ -98,8 +101,24 @@ class Tema3 : public SimpleScene {
 
 		fuelBarAttr* fuelBarCoord;
 
-		std::unordered_map<std::string, Texture2D*> mapTextures;
+		typedef struct scoreBarAttr {
+			float score;
+			float x;
+			float y;
 
+			scoreBarAttr() {}
+
+			scoreBarAttr(const float score, const float x, const float y) {
+				this->score = score;
+				this->x = x;
+				this->y = y;
+			}
+		} scoreBarAttr;
+
+		scoreBarAttr* scoreBarCoord;
+
+		std::unordered_map<std::string, Texture2D*> mapTextures;
+		std::vector<bool> is_holocron_hit;
 		void gameOver(const std::string goMessage);
 };
 
