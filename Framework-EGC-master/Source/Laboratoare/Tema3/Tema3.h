@@ -50,6 +50,10 @@ class Tema3 : public SimpleScene {
 		void RenderFuelBar();
 		void RenderPlayer(const std::string shaderName);
 		void RenderHeart();
+		void RenderBackground();
+		void RenderScoreBoard();
+		void LoadShaders();
+		void LoadTextures();
 		void reset();
 		int getColumn(const int x);
 		Tema3Camera::Camera* camera;
@@ -78,6 +82,7 @@ class Tema3 : public SimpleScene {
 		bool isDiformed;
 		bool firstPerson;
 		bool hitGreen;
+		bool jediBackground;
 	
 		typedef struct fuelBarAttr {
 			float fuel;

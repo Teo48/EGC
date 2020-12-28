@@ -40,133 +40,10 @@ void Tema3::Init()
 	camera = new Tema3Camera::Camera();
 	camera->Set(glm::vec3(0, 2, 3.5f), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
 	projectionMatrix = glm::perspective(RADIANS(60), window->props.aspectRatio, 0.01f, 200.0f);
-
-	const std::string textureLoc = "Source/Laboratoare/Tema3/Textures/";
-
-	{
-		Texture2D* texture = new Texture2D();
-		texture->Load2D((textureLoc + "lava.jpg").c_str(), GL_REPEAT);
-		mapTextures["lava"] = texture;
-	}
-
-	{
-		Texture2D* texture = new Texture2D();
-		texture->Load2D((textureLoc + "floor.png").c_str(), GL_REPEAT);
-		mapTextures["floor"] = texture;
-	}
-
-	{
-		Texture2D* texture = new Texture2D();
-		texture->Load2D((textureLoc + "red.jpg").c_str(), GL_REPEAT);
-		mapTextures["sithHolocron"] = texture;
-	}
-
-	{
-		Texture2D* texture = new Texture2D();
-		texture->Load2D((textureLoc + "blueholocron.jpg").c_str(), GL_REPEAT);
-		mapTextures["jediHolocron"] = texture;
-	}
-
-	{
-		Texture2D* texture = new Texture2D();
-		texture->Load2D((textureLoc + "blue.jpg").c_str(), GL_REPEAT);
-		mapTextures["jediBackground"] = texture;
-	}
-
-	{
-		Texture2D* texture = new Texture2D();
-		texture->Load2D((textureLoc + "redbackground.jpg").c_str(), GL_REPEAT);
-		mapTextures["sithBackground"] = texture;
-	}
-
-	{
-		Texture2D* texture = new Texture2D();
-		texture->Load2D((textureLoc + "windu.png").c_str(), GL_REPEAT);
-		mapTextures["windu"] = texture;
-	}
-
-	{
-		Texture2D* texture = new Texture2D();
-		texture->Load2D((textureLoc + "purple.png").c_str(), GL_REPEAT);
-		mapTextures["purple"] = texture;
-	}
-
-	{
-		Shader* shader = new Shader("PlayerShader");
-		shader->AddShader("Source/Laboratoare/Tema3/Shaders/PlayerVertexShader.glsl", GL_VERTEX_SHADER);
-		shader->AddShader("Source/Laboratoare/Tema3/Shaders/PlayerFragmentShader.glsl", GL_FRAGMENT_SHADER);
-		shader->CreateAndLink();
-		shaders[shader->GetName()] = shader;
-	}
-
-	{
-		Shader* shader = new Shader("PlatformShader");
-		shader->AddShader("Source/Laboratoare/Tema3/Shaders/PlatformVertexShader.glsl", GL_VERTEX_SHADER);
-		shader->AddShader("Source/Laboratoare/Tema3/Shaders/PlatformFragmentShader.glsl", GL_FRAGMENT_SHADER);
-		shader->CreateAndLink();
-		shaders[shader->GetName()] = shader;
-	}
-
-	{
-		Shader* shader = new Shader("FuelBarShader");
-		shader->AddShader("Source/Laboratoare/Tema3/Shaders/FuelBarVertexShader.glsl", GL_VERTEX_SHADER);
-		shader->AddShader("Source/Laboratoare/Tema3/Shaders/FuelBarFragmentShader.glsl", GL_FRAGMENT_SHADER);
-		shader->CreateAndLink();
-		shaders[shader->GetName()] = shader;
-	}
-
-	{
-		Shader* shader = new Shader("DeformedPlayerShader");
-		shader->AddShader("Source/Laboratoare/Tema3/Shaders/DeformedPlayerVertexShader.glsl", GL_VERTEX_SHADER);
-		shader->AddShader("Source/Laboratoare/Tema3/Shaders/DeformedPlayerFragmentShader.glsl", GL_FRAGMENT_SHADER);
-		shader->CreateAndLink();
-		shaders[shader->GetName()] = shader;
-	}
-
-	{
-		Shader* shader = new Shader("HeartShader");
-		shader->AddShader("Source/Laboratoare/Tema3/Shaders/HeartVertexShader.glsl", GL_VERTEX_SHADER);
-		shader->AddShader("Source/Laboratoare/Tema3/Shaders/HeartFragmentShader.glsl", GL_FRAGMENT_SHADER);
-		shader->CreateAndLink();
-		shaders[shader->GetName()] = shader;
-	}
-
-	{
-		Shader* shader = new Shader("TexturePlatformShader");
-		shader->AddShader("Source/Laboratoare/Tema3/Shaders/TexturePlatformVertexShader.glsl", GL_VERTEX_SHADER);
-		shader->AddShader("Source/Laboratoare/Tema3/Shaders/TexturePlatformFragmentShader.glsl", GL_FRAGMENT_SHADER);
-		shader->CreateAndLink();
-		shaders[shader->GetName()] = shader;
-	}
-
-	{
-		Shader* shader = new Shader("HolocronShader");
-		shader->AddShader("Source/Laboratoare/Tema3/Shaders/HolocronVertexShader.glsl", GL_VERTEX_SHADER);
-		shader->AddShader("Source/Laboratoare/Tema3/Shaders/HolocronFragmentShader.glsl", GL_FRAGMENT_SHADER);
-		shader->CreateAndLink();
-		shaders[shader->GetName()] = shader;
-	}
-
-	{
-		Shader* shader = new Shader("QuadShader");
-		shader->AddShader("Source/Laboratoare/Tema3/Shaders/QuadVertexShader.glsl", GL_VERTEX_SHADER);
-		shader->AddShader("Source/Laboratoare/Tema3/Shaders/QuadFragmentShader.glsl", GL_FRAGMENT_SHADER);
-		shader->CreateAndLink();
-		shaders[shader->GetName()] = shader;
-	}
-	/*
-	{
-		Mesh* mesh = new Mesh("sithHolocron");
-		mesh->LoadMesh(RESOURCE_PATH::MODELS + "Primitives", "sith.obj");
-		meshes[mesh->GetMeshID()] = mesh;
-	}
-
-	{
-		Mesh* mesh = new Mesh("jediHolocron");
-		mesh->LoadMesh(RESOURCE_PATH::MODELS + "Primitives", "jediholocron.obj");
-		meshes[mesh->GetMeshID()] = mesh;
-	}
-	*/
+	
+	LoadTextures();
+	LoadShaders();
+	
 	{
 		Mesh* mesh = new Mesh("background");
 		mesh->LoadMesh(RESOURCE_PATH::MODELS + "Primitives", "box.obj");
@@ -196,6 +73,7 @@ void Tema3::Init()
 	canGetExtraLife = true;
 	canLoseLife = true;
 	respawnAnimation = false;
+	jediBackground = true;
 	trapSpeedTime = 30.f;
 	score = 0;
 
@@ -275,62 +153,19 @@ void Tema3::RenderCubes() {
 
 void Tema3::Update(float deltaTimeSeconds)
 {	
-	/*
-	{
-		glm::mat4 modelMatrix = glm::mat4(1);
-		modelMatrix = glm::translate(modelMatrix, glm::vec3(4.f, 0.5f, -3.f));
-		modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f));
-		modelMatrix = glm::rotate(modelMatrix, RADIANS(75.0f + (float)Engine::GetElapsedTime() * 100.f), glm::vec3(1, 0, 0));
-		RenderMeshTexture(meshes["jediHolocron"], shaders["HolocronShader"], modelMatrix, -1,
-			-1, mapTextures["jediHolocron"], nullptr);
-	}
-	*/
-
 	
-
-	/*
-	{
-		glm::mat4 modelMatrix = glm::mat4(1);
-		modelMatrix = glm::scale(modelMatrix, glm::vec3(250.f, 200.f, 200.f));
-		RenderMeshTexture(meshes["background"], shaders["HolocronShader"], modelMatrix, -1,
-			-1, mapTextures["sithBackground"], nullptr);
-	}
-	*/
 
 	if (firstPerson == true) {
 		glm::vec3 pos = glm::vec3(playerCoordinates.x, playerCoordinates.y + 0.65f, playerCoordinates.z - 1.5f);
 		camera->Set(glm::vec3(pos), pos + glm::vec3(0.f, 0.f, -1.f), glm::vec3(0, 1, 0));
 	}
 	else {
-		glm::vec3 pos = glm::vec3(playerCoordinates.x, playerCoordinates.y + 2.0f, 5.5f);
+		glm::vec3 pos = glm::vec3(playerCoordinates.x, playerCoordinates.y + 2.0f, 8.5f);
 		camera->Set(glm::vec3(pos), pos + glm::vec3(0.f, 0.f, -1.f), glm::vec3(0, 1, 0));
 	}
 
-	{
-		glm::mat4 modelMatrix = glm::mat4(1);
-		modelMatrix = glm::scale(modelMatrix, glm::vec3(250.f, 200.f, 200.f));
-		RenderMeshTexture(meshes["background"], shaders["HolocronShader"], modelMatrix, -1,
-			-1, mapTextures["jediBackground"], nullptr);
-	}
-
-	{
-		glm::mat4 modelMatrix = glm::mat4(1);
-		modelMatrix *= Transform3D::Translate(0.87f, 0.75f, 0.f);
-		modelMatrix *= Transform3D::Scale(0.25f, 0.25f, 1.f);
-		modelMatrix = glm::rotate(modelMatrix, RADIANS(90), glm::vec3(0, 0, 1));
-		RenderMesh2DTexture(quad->getQuad(), shaders["QuadShader"], modelMatrix, mapTextures["windu"]);
-	}
-
-	{
-		glm::mat4 modelMatrix = glm::mat4(1);
-
-		modelMatrix *= Transform3D::Translate(scoreBarCoord->x, scoreBarCoord->y, 0.f);
-		modelMatrix *= Transform3D::Translate(-0.5f, -0.5f, 0.f);
-		modelMatrix *= Transform3D::Scale(-scoreBarCoord->score, 0.2f, 1.f);
-		modelMatrix *= Transform3D::Translate(0.5f, 0.5f, 0.f);
-		modelMatrix = glm::rotate(modelMatrix, RADIANS(270), glm::vec3(0, 0, 1));
-		RenderMesh2DTexture(quad->getQuad(), shaders["QuadShader"], modelMatrix, mapTextures["purple"]);
-	}
+	RenderBackground();
+	RenderScoreBoard();
 
 	for (int i = 0; i < 10; ++i) {
 		glm::mat4 modelMatrix = glm::mat4(1);
@@ -339,14 +174,14 @@ void Tema3::Update(float deltaTimeSeconds)
 		if (holocron->holocrons[i].type == 0) {
 			modelMatrix *= Transform3D::RotateOX(RADIANS(75.f) + (float)(Engine::GetElapsedTime()));
 			modelMatrix *= Transform3D::Scale(0.5f, 0.5f, 0.5f);
-			RenderMeshTexture(holocron->getJediHolocron(), shaders["HolocronShader"], modelMatrix, -1,
-				-1, mapTextures["jediHolocron"], nullptr);
+			RenderMeshTexture(holocron->getJediHolocron(), shaders["HolocronShader"], modelMatrix, 0,
+				holocron->holocrons[i].collide, mapTextures["jediHolocron"], nullptr);
 		}
 		else {
 			modelMatrix *= Transform3D::RotateOY(RADIANS(75.f) + (float)(Engine::GetElapsedTime()));
 			modelMatrix *= Transform3D::Scale(0.01f, 0.01f, 0.01f);
-			RenderMeshTexture(holocron->getSithHolocron(), shaders["HolocronShader"], modelMatrix, -1,
-				-1, mapTextures["sithHolocron"], nullptr);
+			RenderMeshTexture(holocron->getSithHolocron(), shaders["HolocronShader"], modelMatrix, 1,
+				holocron->holocrons[i].collide, mapTextures["sithHolocron"], nullptr);
 		}
 	}
 
@@ -493,7 +328,15 @@ void Tema3::Update(float deltaTimeSeconds)
 				const auto& it = holocron->holocrons[i];
 				if (holocronCollisison(it.xmin - 0.5f, it.ymin, it.zmin, it.xmax - 0.5f, it.ymax, it.zmax) && is_holocron_hit[i] == false) {
 					is_holocron_hit[i] = true;
-					scoreBarCoord->score += 0.01f;
+					holocron->holocrons[i].collide = 1;
+					if (it.type == 0) {
+						jediBackground = true;
+						scoreBarCoord->score += 0.01f;
+					}
+					else {
+						jediBackground = false;
+						scoreBarCoord->score += 0.02f;
+					}
 					break;
 				}
 			}
@@ -662,6 +505,7 @@ void Tema3::reset()
 		auto& it = holocron->holocrons[i];
 		if (it.zmax > 15.f) {
 			is_holocron_hit[i] = false;
+			holocron->holocrons[i].collide = 0;
 			if (it.type == 1) {
 				it.zmax = platform->cubes[it.line][it.collumn].zmax - 3.f + 0.517f;
 				it.zmin = platform->cubes[it.line][it.collumn].zmin + 3.f - 0.517f;
@@ -722,6 +566,176 @@ void Tema3::RenderHeart()
 		modelMatrix *= Transform3D::Translate(1.f - i * 0.15f, 0.875f, 0.f);
 		modelMatrix *= Transform3D::Scale(0.05f, 0.05f, 0.05f);
 		Render2DMesh(heart->getHeart(), shaders["HeartShader"], modelMatrix, glm::vec3(1.f, 0.f, 0.f));
+	}
+}
+
+void Tema3::RenderBackground()
+{
+	if (jediBackground) {
+		
+		glm::mat4 modelMatrix = glm::mat4(1);
+		modelMatrix = glm::scale(modelMatrix, glm::vec3(250.f, 200.f, 200.f));
+		RenderMeshTexture(meshes["background"], shaders["BackgroundShader"], modelMatrix, -1,
+			-1, mapTextures["jediBackground"], nullptr);
+		
+	}
+	else {
+		
+		glm::mat4 modelMatrix = glm::mat4(1);
+		modelMatrix = glm::scale(modelMatrix, glm::vec3(250.f, 200.f, 200.f));
+		RenderMeshTexture(meshes["background"], shaders["BackgroundShader"], modelMatrix, -1,
+			-1, mapTextures["sithBackground"], nullptr);
+		
+	}
+}
+
+void Tema3::RenderScoreBoard()
+{
+	{
+		glm::mat4 modelMatrix = glm::mat4(1);
+		modelMatrix *= Transform3D::Translate(0.87f, 0.75f, 0.f);
+		modelMatrix *= Transform3D::Scale(0.25f, 0.25f, 1.f);
+		modelMatrix = glm::rotate(modelMatrix, RADIANS(90), glm::vec3(0, 0, 1));
+		RenderMesh2DTexture(quad->getQuad(), shaders["QuadShader"], modelMatrix, mapTextures["windu"]);
+	}
+
+	{
+		glm::mat4 modelMatrix = glm::mat4(1);
+
+		modelMatrix *= Transform3D::Translate(scoreBarCoord->x, scoreBarCoord->y, 0.f);
+		modelMatrix *= Transform3D::Translate(-0.5f, -0.5f, 0.f);
+		modelMatrix *= Transform3D::Scale(-scoreBarCoord->score, 0.2f, 1.f);
+		modelMatrix *= Transform3D::Translate(0.5f, 0.5f, 0.f);
+		modelMatrix = glm::rotate(modelMatrix, RADIANS(270), glm::vec3(0, 0, 1));
+		RenderMesh2DTexture(quad->getQuad(), shaders["QuadShader"], modelMatrix, mapTextures["purple"]);
+	}
+}
+
+void Tema3::LoadShaders()
+{
+	{
+		Shader* shader = new Shader("PlayerShader");
+		shader->AddShader("Source/Laboratoare/Tema3/Shaders/PlayerVertexShader.glsl", GL_VERTEX_SHADER);
+		shader->AddShader("Source/Laboratoare/Tema3/Shaders/PlayerFragmentShader.glsl", GL_FRAGMENT_SHADER);
+		shader->CreateAndLink();
+		shaders[shader->GetName()] = shader;
+	}
+
+	{
+		Shader* shader = new Shader("PlatformShader");
+		shader->AddShader("Source/Laboratoare/Tema3/Shaders/PlatformVertexShader.glsl", GL_VERTEX_SHADER);
+		shader->AddShader("Source/Laboratoare/Tema3/Shaders/PlatformFragmentShader.glsl", GL_FRAGMENT_SHADER);
+		shader->CreateAndLink();
+		shaders[shader->GetName()] = shader;
+	}
+
+	{
+		Shader* shader = new Shader("FuelBarShader");
+		shader->AddShader("Source/Laboratoare/Tema3/Shaders/FuelBarVertexShader.glsl", GL_VERTEX_SHADER);
+		shader->AddShader("Source/Laboratoare/Tema3/Shaders/FuelBarFragmentShader.glsl", GL_FRAGMENT_SHADER);
+		shader->CreateAndLink();
+		shaders[shader->GetName()] = shader;
+	}
+
+	{
+		Shader* shader = new Shader("DeformedPlayerShader");
+		shader->AddShader("Source/Laboratoare/Tema3/Shaders/DeformedPlayerVertexShader.glsl", GL_VERTEX_SHADER);
+		shader->AddShader("Source/Laboratoare/Tema3/Shaders/DeformedPlayerFragmentShader.glsl", GL_FRAGMENT_SHADER);
+		shader->CreateAndLink();
+		shaders[shader->GetName()] = shader;
+	}
+
+	{
+		Shader* shader = new Shader("HeartShader");
+		shader->AddShader("Source/Laboratoare/Tema3/Shaders/HeartVertexShader.glsl", GL_VERTEX_SHADER);
+		shader->AddShader("Source/Laboratoare/Tema3/Shaders/HeartFragmentShader.glsl", GL_FRAGMENT_SHADER);
+		shader->CreateAndLink();
+		shaders[shader->GetName()] = shader;
+	}
+
+	{
+		Shader* shader = new Shader("TexturePlatformShader");
+		shader->AddShader("Source/Laboratoare/Tema3/Shaders/TexturePlatformVertexShader.glsl", GL_VERTEX_SHADER);
+		shader->AddShader("Source/Laboratoare/Tema3/Shaders/TexturePlatformFragmentShader.glsl", GL_FRAGMENT_SHADER);
+		shader->CreateAndLink();
+		shaders[shader->GetName()] = shader;
+	}
+
+	{
+		Shader* shader = new Shader("HolocronShader");
+		shader->AddShader("Source/Laboratoare/Tema3/Shaders/HolocronVertexShader.glsl", GL_VERTEX_SHADER);
+		shader->AddShader("Source/Laboratoare/Tema3/Shaders/HolocronFragmentShader.glsl", GL_FRAGMENT_SHADER);
+		shader->CreateAndLink();
+		shaders[shader->GetName()] = shader;
+	}
+
+	{
+		Shader* shader = new Shader("BackgroundShader");
+		shader->AddShader("Source/Laboratoare/Tema3/Shaders/BackgroundVertexShader.glsl", GL_VERTEX_SHADER);
+		shader->AddShader("Source/Laboratoare/Tema3/Shaders/BackgroundFragmentShader.glsl", GL_FRAGMENT_SHADER);
+		shader->CreateAndLink();
+		shaders[shader->GetName()] = shader;
+	}
+
+	{
+		Shader* shader = new Shader("QuadShader");
+		shader->AddShader("Source/Laboratoare/Tema3/Shaders/QuadVertexShader.glsl", GL_VERTEX_SHADER);
+		shader->AddShader("Source/Laboratoare/Tema3/Shaders/QuadFragmentShader.glsl", GL_FRAGMENT_SHADER);
+		shader->CreateAndLink();
+		shaders[shader->GetName()] = shader;
+	}
+}
+
+void Tema3::LoadTextures()
+{
+	const std::string textureLoc = "Source/Laboratoare/Tema3/Textures/";
+
+	{
+		Texture2D* texture = new Texture2D();
+		texture->Load2D((textureLoc + "lava.jpg").c_str(), GL_REPEAT);
+		mapTextures["lava"] = texture;
+	}
+
+	{
+		Texture2D* texture = new Texture2D();
+		texture->Load2D((textureLoc + "floor.png").c_str(), GL_REPEAT);
+		mapTextures["floor"] = texture;
+	}
+
+	{
+		Texture2D* texture = new Texture2D();
+		texture->Load2D((textureLoc + "red.jpg").c_str(), GL_REPEAT);
+		mapTextures["sithHolocron"] = texture;
+	}
+
+	{
+		Texture2D* texture = new Texture2D();
+		texture->Load2D((textureLoc + "blueholocron.jpg").c_str(), GL_REPEAT);
+		mapTextures["jediHolocron"] = texture;
+	}
+
+	{
+		Texture2D* texture = new Texture2D();
+		texture->Load2D((textureLoc + "blue.jpg").c_str(), GL_REPEAT);
+		mapTextures["jediBackground"] = texture;
+	}
+
+	{
+		Texture2D* texture = new Texture2D();
+		texture->Load2D((textureLoc + "redbackground.jpg").c_str(), GL_REPEAT);
+		mapTextures["sithBackground"] = texture;
+	}
+
+	{
+		Texture2D* texture = new Texture2D();
+		texture->Load2D((textureLoc + "windu.png").c_str(), GL_REPEAT);
+		mapTextures["windu"] = texture;
+	}
+
+	{
+		Texture2D* texture = new Texture2D();
+		texture->Load2D((textureLoc + "purple.png").c_str(), GL_REPEAT);
+		mapTextures["purple"] = texture;
 	}
 }
 
