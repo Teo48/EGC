@@ -21,6 +21,7 @@ void Cube::Init() {
 	cubes[0][0].length = cubes[0][0].zmax - cubes[0][0].zmin;
 	cubes[0][0].color = blue;
 	cubes[0][0].collide = 0;
+	cubes[0][0].hasHolocron = false;
 
 	for (int i = 1; i < 5; ++i) {
 		cubes[0][i].xmin = cubes[0][i - 1].xmax;
@@ -32,6 +33,7 @@ void Cube::Init() {
 		cubes[0][i].length = cubes[0][i].zmax - cubes[0][i].zmin;
 		cubes[0][i].color = blue;
 		cubes[0][i].collide = 0;
+		cubes[0][i].hasHolocron = false;
 	}
 
 	for (int j = 1; j < 50; ++j) {
@@ -45,6 +47,7 @@ void Cube::Init() {
 			cubes[j][i].length = cubes[j][i].zmax - cubes[j][i].zmin;
 			cubes[j][i].color = pickColor();
 			cubes[j][i].collide = 0;
+			cubes[j][i].hasHolocron = false;
 		}
 	}
 

@@ -120,10 +120,26 @@ class Tema3 : public SimpleScene {
 			}
 		} scoreBarAttr;
 
+		typedef struct obstacleAttr {
+			float xmin;
+			float xmax;
+			float ymin;
+			float ymax;
+			float zmin;
+			float zmax;
+			int type;
+			int collide;
+			int collumn;
+			int line;
+		} obstacleAttr;
+
+		std::vector<obstacleAttr> obstacles;
+
 		scoreBarAttr* scoreBarCoord;
 
 		std::unordered_map<std::string, Texture2D*> mapTextures;
 		std::vector<bool> is_holocron_hit;
+		std::vector<bool> is_obstacle_hit;
 		void gameOver(const std::string goMessage);
 };
 

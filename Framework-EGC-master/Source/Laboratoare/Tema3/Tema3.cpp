@@ -83,7 +83,8 @@ void Tema3::Init()
 		auto currentLine = rand() % 50;
 		for (int j = 0; j < 5; ++j) {
 			auto currentCollumn = rand() % 5;
-			if (platform->cubes[currentLine][currentCollumn].color == 0) {
+			if (platform->cubes[currentLine][currentCollumn].color == 0 && !platform->cubes[currentLine][currentCollumn].hasHolocron) {
+				platform->cubes[currentLine][currentCollumn].hasHolocron = true;
 				int position = currentCollumn;
 				if (currentLine - 1 < 0) {
 					++currentLine;
@@ -123,6 +124,40 @@ void Tema3::Init()
 		}
 	}
 	
+	for (int k = 0; k < 10;) {
+		auto currentLine = rand() % 50;
+		for (int j = 0; j < 5; ++j) {
+			auto currentCollumn = rand() % 5;
+			if (platform->cubes[currentLine][currentCollumn].color == 0 && !platform->cubes[currentLine][currentCollumn].hasHolocron) {
+				platform->cubes[currentLine][currentCollumn].hasHolocron = true;
+				int position = currentCollumn;
+				if (currentLine - 1 < 0) {
+					++currentLine;
+				}
+				float zetmin = platform->cubes[currentLine][currentCollumn].zmin;
+				float zetmax = platform->cubes[currentLine][currentCollumn].zmax;
+				float xmin = platform->cubes[currentLine][currentCollumn].xmin;
+				float xmax = platform->cubes[currentLine][currentCollumn].xmax;
+				obstacleAttr data;
+
+				data.xmin = xmin + 1.f - 0.75f + 0.25f;
+				data.xmax = xmax - 1.f + 0.75f;
+				data.ymin = 0.6f;
+				data.ymax = 1.25f;
+				data.zmin = zetmin + 3.f;
+				data.zmax = zetmax - 3.f;
+				data.type = position & 1;
+				data.collumn = currentCollumn;
+				data.line = currentLine;
+
+				obstacles.emplace_back(data);
+				is_obstacle_hit.emplace_back(false);
+				++k;
+				break;
+			}
+		}
+	}
+
 }
 
 void Tema3::RenderCubes() {
@@ -163,6 +198,37 @@ void Tema3::Update(float deltaTimeSeconds)
 		glm::vec3 pos = glm::vec3(playerCoordinates.x, playerCoordinates.y + 2.0f, 8.5f);
 		camera->Set(glm::vec3(pos), pos + glm::vec3(0.f, 0.f, -1.f), glm::vec3(0, 1, 0));
 	}
+	/*
+	{
+		glm::mat4 modelMatrix = glm::mat4(1);
+		modelMatrix *= Transform3D::Translate(0.f, 0.6f, 0.f);
+		modelMatrix *= Transform3D::Scale(1.5f, 1.f, 1.f);
+		//modelMatrix = glm::scale(modelMatrix, glm::vec3(250.f, 200.f, 200.f));
+		modelMatrix *= Transform3D::Translate(-0.5f, -0.5f, 0.f);
+		modelMatrix *= Transform3D::Scale(1.f, 2.5f, 1.f);
+		modelMatrix *= Transform3D::Translate(0.5f, 0.5f, 0.f);
+		RenderMeshTexture(quad->getQuad(), shaders["BackgroundShader"], modelMatrix, -1,
+			-1, nullptr, nullptr);
+	}
+	*/
+
+	for (int i = 0; i < 10; ++i) {
+		glm::mat4 modelMatrix = glm::mat4(1);
+		modelMatrix *= Transform3D::Translate(obstacles[i].xmin, 0.6f, obstacles[i].zmin);
+		modelMatrix *= Transform3D::Scale(1.5f, 1.f, 1.f);
+		
+		modelMatrix *= Transform3D::Translate(-0.5f, -0.5f, 0.f);
+		modelMatrix *= Transform3D::Scale(1.f, 2.5f, 1.f);
+		modelMatrix *= Transform3D::Translate(0.5f, 0.5f, 0.f);
+		if (obstacles[i].type) {
+			RenderMeshTexture(quad->getQuad(), shaders["BackgroundShader"], modelMatrix, -1,
+				-1, mapTextures["clone"], nullptr);
+		}
+		else {
+			RenderMeshTexture(quad->getQuad(), shaders["BackgroundShader"], modelMatrix, -1,
+				-1, mapTextures["droid"], nullptr);
+		}
+	}
 
 	RenderBackground();
 	RenderScoreBoard();
@@ -194,7 +260,7 @@ void Tema3::Update(float deltaTimeSeconds)
 	else {
 		
 		if (isRespawned) {
-			playerCoordinates.y = 3.f;
+			playerCoordinates.y = 4.f;
 			playerCoordinates.x = 0.f;
 			isRespawned = false;
 			platformSpeed = 10.f;
@@ -205,11 +271,11 @@ void Tema3::Update(float deltaTimeSeconds)
 
 		if (!isDead) {
 			if (isJumpTriggered) {
-				(playerCoordinates.y + 0.2f * platformSpeed * deltaTimeSeconds) > 3.f ? playerCoordinates.y = 3.f, isJumpTriggered = false :
+				(playerCoordinates.y + 0.2f * platformSpeed * deltaTimeSeconds) > 4.f ? playerCoordinates.y = 4.f, isJumpTriggered = false :
 					playerCoordinates.y += 0.2f * platformSpeed * deltaTimeSeconds;
 			}
 
-			if (playerCoordinates.y == 3.f) {
+			if (playerCoordinates.y == 4.f) {
 				inAir = true;
 			}
 
@@ -253,6 +319,8 @@ void Tema3::Update(float deltaTimeSeconds)
 				auto &it = holocron->holocrons[i];
 				it.zmax += platformSpeed * deltaTimeSeconds;
 				it.zmin += platformSpeed * deltaTimeSeconds;
+				obstacles[i].zmax += platformSpeed * deltaTimeSeconds;
+				obstacles[i].zmin += platformSpeed * deltaTimeSeconds;
 			}
 		
 			reset();
@@ -338,6 +406,11 @@ void Tema3::Update(float deltaTimeSeconds)
 						scoreBarCoord->score += 0.02f;
 					}
 					break;
+				}
+				const auto& oit = obstacles[i];
+				if (holocronCollisison(oit.xmin - 0.25f, oit.ymin, oit.zmin, oit.xmax - 0.5f, oit.ymax, oit.zmax) && is_obstacle_hit[i] == false) {
+					is_obstacle_hit[i] = true;
+					isDead = true;
 				}
 			}
 
@@ -514,6 +587,13 @@ void Tema3::reset()
 				it.zmax = platform->cubes[it.line][it.collumn].zmax - 3.f + 0.44f;
 				it.zmin = platform->cubes[it.line][it.collumn].zmin + 3.f - 0.44f;
 			}
+		}
+		auto& oit = obstacles[i];
+
+		if (oit.zmax > 15.f) {
+			is_obstacle_hit[i] = false;
+			obstacles[i].zmax = platform->cubes[oit.line][oit.collumn].zmax - 3.f;
+			obstacles[i].zmin = platform->cubes[oit.line][oit.collumn].zmin + 3.f;
 		}
 	}
 }
@@ -736,6 +816,24 @@ void Tema3::LoadTextures()
 		Texture2D* texture = new Texture2D();
 		texture->Load2D((textureLoc + "purple.png").c_str(), GL_REPEAT);
 		mapTextures["purple"] = texture;
+	}
+
+	{
+		Texture2D* texture = new Texture2D();
+		texture->Load2D((textureLoc + "clone.png").c_str(), GL_REPEAT);
+		mapTextures["clone"] = texture;
+	}
+
+	{
+		Texture2D* texture = new Texture2D();
+		texture->Load2D((textureLoc + "spaceship.png").c_str(), GL_REPEAT);
+		mapTextures["spaceship"] = texture;
+	}
+
+	{
+		Texture2D* texture = new Texture2D();
+		texture->Load2D((textureLoc + "droid.png").c_str(), GL_REPEAT);
+		mapTextures["droid"] = texture;
 	}
 }
 

@@ -20,6 +20,7 @@ class Cube {
 			float length;
 			int color;
 			int collide;
+			bool hasHolocron;
 		} attributes;
 		int pickColor();
 		void Init();
