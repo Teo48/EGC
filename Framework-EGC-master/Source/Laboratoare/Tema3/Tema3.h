@@ -82,7 +82,7 @@ class Tema3 : public SimpleScene {
 		bool isDiformed;
 		bool firstPerson;
 		bool hitGreen;
-		bool jediBackground;
+		int jediBackground;
 	
 		typedef struct fuelBarAttr {
 			float fuel;
