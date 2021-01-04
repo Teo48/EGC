@@ -10,6 +10,7 @@
 #include "Heart.h"
 #include "Holocron.h"
 #include "Quad.h"
+#include "Temple.h"
 
 class Tema3 : public SimpleScene {
 	public:
@@ -40,6 +41,7 @@ class Tema3 : public SimpleScene {
 		Heart* heart;
 		Holocron* holocron;
 		Quad* quad;
+		Temple* temple;
 		glm::vec3 playerCoordinates;
 		glm::mat4 projectionMatrix;
 		bool checkCollision(const float xmin, const float ymin, const float zmin,
@@ -52,8 +54,12 @@ class Tema3 : public SimpleScene {
 		void RenderHeart();
 		void RenderBackground();
 		void RenderScoreBoard();
+		void RenderHolocrons();
+		void RenderObstacles();
 		void LoadShaders();
 		void LoadTextures();
+		void InitHolocrons();
+		void InitObstacles();
 		void reset();
 		int getColumn(const int x);
 		Tema3Camera::Camera* camera;

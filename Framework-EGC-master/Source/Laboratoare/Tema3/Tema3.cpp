@@ -37,6 +37,7 @@ void Tema3::Init()
 	heart = new Heart();
 	holocron = new Holocron();
 	quad = new Quad();
+	temple = new Temple();
 	camera = new Tema3Camera::Camera();
 	camera->Set(glm::vec3(0, 2, 3.5f), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
 	projectionMatrix = glm::perspective(RADIANS(60), window->props.aspectRatio, 0.01f, 200.0f);
@@ -78,113 +79,8 @@ void Tema3::Init()
 	score = 0;
 
 	holocron->Init();
-	
-	for (int k = 0; k < 12;) {
-		auto currentLine = rand() % 50;
-		for (int j = 0; j < 5; ++j) {
-			auto currentCollumn = rand() % 5;
-			if (platform->cubes[currentLine][currentCollumn].color == 0 && !platform->cubes[currentLine][currentCollumn].hasHolocron) {
-				platform->cubes[currentLine][currentCollumn].hasHolocron = true;
-				int position = currentCollumn;
-				if (currentLine - 1 < 0) {
-					++currentLine;
-				}
-				float zetmin = platform->cubes[currentLine][currentCollumn].zmin;
-				float zetmax = platform->cubes[currentLine][currentCollumn].zmax;
-				float xmin = platform->cubes[currentLine][currentCollumn].xmin;
-				float xmax = platform->cubes[currentLine][currentCollumn].xmax;
-				auto data = holocron->att;
-				if (k < 10) {
-					if (position & 1) {
-						data.xmin = xmin + 1.f - 0.517f;
-						data.xmax = xmax - 1.f + 0.517;
-						data.ymin = 0.5f;
-						data.ymax = 1.46f;
-						data.zmin = zetmin + 3.f - 0.517f;
-						data.zmax = zetmax - 3.f + 0.517f;
-						data.type = 1;
-						data.collumn = currentCollumn;
-						data.line = currentLine;
-					}
-					else {
-						data.xmin = xmin + 1.f - 0.44f;
-						data.xmax = xmax - 1.f + 0.44;
-						data.ymin = 0.85f;
-						data.ymax = 1.85f;
-						data.zmin = zetmin + 3.f - 0.44f;
-						data.zmax = zetmax - 3.f + 0.44f;
-						data.type = 0;
-						data.collumn = currentCollumn;
-						data.line = currentLine;
-					}
-				}
-
-				if (k >= 10) {
-					data.xmin = xmin + 1.f - 0.44f;
-					data.xmax = xmax - 1.f + 0.44;
-					data.ymin = 0.85f;
-					data.ymax = 1.85f;
-					data.zmin = zetmin + 3.f - 0.44f;
-					data.zmax = zetmax - 3.f + 0.44f;
-					data.type = 2;
-					data.collumn = currentCollumn;
-					data.line = currentLine;
-				}
-				holocron->holocrons.emplace_back(data);
-				is_holocron_hit.emplace_back(false);
-				++k;
-				break;
-			}
-		}
-	}
-	
-	for (int k = 0; k < 12;) {
-		auto currentLine = rand() % 50;
-		for (int j = 0; j < 5; ++j) {
-			auto currentCollumn = rand() % 5;
-			if (platform->cubes[currentLine][currentCollumn].color == 0 && !platform->cubes[currentLine][currentCollumn].hasHolocron) {
-				platform->cubes[currentLine][currentCollumn].hasHolocron = true;
-				int position = currentCollumn;
-				if (currentLine - 1 < 0) {
-					++currentLine;
-				}
-				float zetmin = platform->cubes[currentLine][currentCollumn].zmin;
-				float zetmax = platform->cubes[currentLine][currentCollumn].zmax;
-				float xmin = platform->cubes[currentLine][currentCollumn].xmin;
-				float xmax = platform->cubes[currentLine][currentCollumn].xmax;
-				obstacleAttr data;
-				if (k < 10) {
-					data.xmin = xmin + 1.f - 0.75f + 0.25f;
-					data.xmax = xmax - 1.f + 0.75f;
-					data.ymin = 0.6f;
-					data.ymax = 1.25f;
-					data.zmin = zetmin + 3.f;
-					data.zmax = zetmax - 3.f;
-					data.type = position & 1;
-					data.collumn = currentCollumn;
-					data.line = currentLine;
-				}
-
-				if (k >= 10) {
-					data.xmin = xmin + 1.f - 0.517f;
-					data.xmax = xmax - 1.f + 0.517;
-					data.ymin = 0.8f;
-					data.ymax = 1.234f;
-					data.zmin = zetmax - 3.f + 0.517f;
-					data.zmax = data.zmin + 0.96f;
-					data.type = 2;
-					data.collumn = currentCollumn;
-					data.line = currentLine;
-				}
-
-				obstacles.emplace_back(data);
-				is_obstacle_hit.emplace_back(false);
-				++k;
-				break;
-			}
-		}
-	}
-
+	InitHolocrons();
+	InitObstacles();
 }
 
 void Tema3::RenderCubes() {
@@ -223,77 +119,16 @@ void Tema3::Update(float deltaTimeSeconds)
 		glm::vec3 pos = glm::vec3(playerCoordinates.x, playerCoordinates.y + 2.0f, 8.5f);
 		camera->Set(glm::vec3(pos), pos + glm::vec3(0.f, 0.f, -1.f), glm::vec3(0, 1, 0));
 	}
-	/*
+
 	{
 		glm::mat4 modelMatrix = glm::mat4(1);
-		modelMatrix *= Transform3D::Translate(0.f, 0.6f, 0.f);
-		modelMatrix *= Transform3D::Scale(0.01f, 0.01f, 0.01f);
-		modelMatrix *= Transform3D::RotateOX(RADIANS(90.f));
-		RenderMeshTexture(holocron->getSithHolocron(), shaders["HolocronShader"], modelMatrix, 1,
-			0, mapTextures["molten"], nullptr);
+		RenderMeshTexture(temple->getTemple(), shaders["BackgroundShader"], modelMatrix, -1,
+			-1, mapTextures["greenJediBackground"], nullptr);
 	}
-	*/
-
-	for (int i = 0; i < 12; ++i) {
-		
-		if (obstacles[i].type == 1) {
-			glm::mat4 modelMatrix = glm::mat4(1);
-			modelMatrix *= Transform3D::Translate(obstacles[i].xmin, 0.6f, obstacles[i].zmin);
-			modelMatrix *= Transform3D::Scale(1.5f, 1.f, 1.f);
-
-			modelMatrix *= Transform3D::Translate(-0.5f, -0.5f, 0.f);
-			modelMatrix *= Transform3D::Scale(1.f, 2.5f, 1.f);
-			modelMatrix *= Transform3D::Translate(0.5f, 0.5f, 0.f);
-			RenderMeshTexture(quad->getQuad(), shaders["BackgroundShader"], modelMatrix, -1,
-				-1, mapTextures["clone"], nullptr);
-		}
-		else if (obstacles[i].type == 0) {
-			glm::mat4 modelMatrix = glm::mat4(1);
-			modelMatrix *= Transform3D::Translate(obstacles[i].xmin, 0.6f, obstacles[i].zmin);
-			modelMatrix *= Transform3D::Scale(1.5f, 1.f, 1.f);
-
-			modelMatrix *= Transform3D::Translate(-0.5f, -0.5f, 0.f);
-			modelMatrix *= Transform3D::Scale(1.f, 2.5f, 1.f);
-			modelMatrix *= Transform3D::Translate(0.5f, 0.5f, 0.f);
-			RenderMeshTexture(quad->getQuad(), shaders["BackgroundShader"], modelMatrix, -1,
-				-1, mapTextures["droid"], nullptr);
-		}
-		else {
-			glm::mat4 modelMatrix = glm::mat4(1);
-			
-			modelMatrix *= Transform3D::Translate(obstacles[i].xmin, obstacles[i].ymin, obstacles[i].zmin);
-			modelMatrix *= Transform3D::Scale(0.01f, 0.01f, 0.01f);
-			modelMatrix *= Transform3D::RotateOZ(20.f * (float)(Engine::GetElapsedTime()));
-			modelMatrix *= Transform3D::RotateOX(RADIANS(90.f));
-			RenderMeshTexture(holocron->getSithHolocron(), shaders["HolocronShader"], modelMatrix, 1,
-				0, mapTextures["molten"], nullptr);
-		}
-	}
-
 	RenderBackground();
 	RenderScoreBoard();
-
-	for (int i = 0; i < 12; ++i) {
-		glm::mat4 modelMatrix = glm::mat4(1);
-		modelMatrix *= Transform3D::Translate(holocron->holocrons[i].xmin, holocron->holocrons[i].ymin, holocron->holocrons[i].zmin);
-
-		if (holocron->holocrons[i].type == 0) {
-			modelMatrix *= Transform3D::RotateOX(RADIANS(75.f) + (float)(Engine::GetElapsedTime()));
-			modelMatrix *= Transform3D::Scale(0.5f, 0.5f, 0.5f);
-			RenderMeshTexture(holocron->getJediHolocron(), shaders["HolocronShader"], modelMatrix, 0,
-				holocron->holocrons[i].collide, mapTextures["jediHolocron"], nullptr);
-		} else if (holocron->holocrons[i].type == 1) {
-			modelMatrix *= Transform3D::RotateOY(RADIANS(75.f) + (float)(Engine::GetElapsedTime()));
-			modelMatrix *= Transform3D::Scale(0.01f, 0.01f, 0.01f);
-			RenderMeshTexture(holocron->getSithHolocron(), shaders["HolocronShader"], modelMatrix, 1,
-				holocron->holocrons[i].collide, mapTextures["sithHolocron"], nullptr);
-		} else {
-			modelMatrix *= Transform3D::RotateOX(RADIANS(75.f) + 10.f * (float)(Engine::GetElapsedTime()));
-			modelMatrix *= Transform3D::Scale(0.5f, 0.5f, 0.5f);
-			RenderMeshTexture(holocron->getJediHolocron(), shaders["HolocronShader"], modelMatrix, 0,
-				1, mapTextures["molten"], nullptr);
-		}
-	}
+	RenderObstacles();
+	RenderHolocrons();
 
 	RenderHeart();
 	if (!startGame) {
@@ -464,24 +299,6 @@ void Tema3::Update(float deltaTimeSeconds)
 						default:
 							break;
 					}
-
-					/*
-					if (it.type == 0) {
-						jediBackground = 0;
-						scoreBarCoord->score += 0.01f;
-					}
-
-					if (it.type == 1) {
-						jediBackground = 1;
-						scoreBarCoord->score += 0.02f;
-					}
-
-					if (it.type == 2) {
-						jediBackground = 2;
-						scoreBarCoord->score += 0.05f;
-					}
-					*/
-
 					break;
 				}
 				const auto& oit = obstacles[i];
@@ -773,6 +590,70 @@ void Tema3::RenderScoreBoard()
 	}
 }
 
+void Tema3::RenderHolocrons()
+{
+	for (int i = 0; i < 12; ++i) {
+		glm::mat4 modelMatrix = glm::mat4(1);
+		modelMatrix *= Transform3D::Translate(holocron->holocrons[i].xmin, holocron->holocrons[i].ymin, holocron->holocrons[i].zmin);
+
+		if (holocron->holocrons[i].type == 0) {
+			modelMatrix *= Transform3D::RotateOX(RADIANS(75.f) + (float)(Engine::GetElapsedTime()));
+			modelMatrix *= Transform3D::Scale(0.5f, 0.5f, 0.5f);
+			RenderMeshTexture(holocron->getJediHolocron(), shaders["HolocronShader"], modelMatrix, 0,
+				holocron->holocrons[i].collide, mapTextures["jediHolocron"], nullptr);
+		} else if (holocron->holocrons[i].type == 1) {
+			modelMatrix *= Transform3D::RotateOY(RADIANS(75.f) + (float)(Engine::GetElapsedTime()));
+			modelMatrix *= Transform3D::Scale(0.01f, 0.01f, 0.01f);
+			RenderMeshTexture(holocron->getSithHolocron(), shaders["HolocronShader"], modelMatrix, 1,
+				holocron->holocrons[i].collide, mapTextures["sithHolocron"], nullptr);
+		} else {
+			modelMatrix *= Transform3D::RotateOX(RADIANS(75.f) + 10.f * (float)(Engine::GetElapsedTime()));
+			modelMatrix *= Transform3D::Scale(0.5f, 0.5f, 0.5f);
+			RenderMeshTexture(holocron->getJediHolocron(), shaders["HolocronShader"], modelMatrix, 0,
+				1, mapTextures["molten"], nullptr);
+		}
+	}
+}
+
+void Tema3::RenderObstacles()
+{
+	for (int i = 0; i < 12; ++i) {
+
+		if (obstacles[i].type == 1) {
+			glm::mat4 modelMatrix = glm::mat4(1);
+			modelMatrix *= Transform3D::Translate(obstacles[i].xmin, 0.6f, obstacles[i].zmin);
+			modelMatrix *= Transform3D::Scale(1.5f, 1.f, 1.f);
+
+			modelMatrix *= Transform3D::Translate(-0.5f, -0.5f, 0.f);
+			modelMatrix *= Transform3D::Scale(1.f, 2.5f, 1.f);
+			modelMatrix *= Transform3D::Translate(0.5f, 0.5f, 0.f);
+			RenderMeshTexture(quad->getQuad(), shaders["BackgroundShader"], modelMatrix, -1,
+				-1, mapTextures["clone"], nullptr);
+		}
+		else if (obstacles[i].type == 0) {
+			glm::mat4 modelMatrix = glm::mat4(1);
+			modelMatrix *= Transform3D::Translate(obstacles[i].xmin, 0.6f, obstacles[i].zmin);
+			modelMatrix *= Transform3D::Scale(1.5f, 1.f, 1.f);
+
+			modelMatrix *= Transform3D::Translate(-0.5f, -0.5f, 0.f);
+			modelMatrix *= Transform3D::Scale(1.f, 2.5f, 1.f);
+			modelMatrix *= Transform3D::Translate(0.5f, 0.5f, 0.f);
+			RenderMeshTexture(quad->getQuad(), shaders["BackgroundShader"], modelMatrix, -1,
+				-1, mapTextures["droid"], nullptr);
+		}
+		else {
+			glm::mat4 modelMatrix = glm::mat4(1);
+
+			modelMatrix *= Transform3D::Translate(obstacles[i].xmin, obstacles[i].ymin, obstacles[i].zmin);
+			modelMatrix *= Transform3D::Scale(0.01f, 0.01f, 0.01f);
+			modelMatrix *= Transform3D::RotateOZ(20.f * (float)(Engine::GetElapsedTime()));
+			modelMatrix *= Transform3D::RotateOX(RADIANS(90.f));
+			RenderMeshTexture(holocron->getSithHolocron(), shaders["HolocronShader"], modelMatrix, 1,
+				0, mapTextures["molten"], nullptr);
+		}
+	}
+}
+
 void Tema3::LoadShaders()
 {
 	{
@@ -930,6 +811,118 @@ void Tema3::LoadTextures()
 		mapTextures["greenJediBackground"] = texture;
 	}
 
+}
+
+void Tema3::InitHolocrons()
+{
+	for (int k = 0; k < 12;) {
+		auto currentLine = rand() % 50;
+		for (int j = 0; j < 5; ++j) {
+			auto currentCollumn = rand() % 5;
+			if (platform->cubes[currentLine][currentCollumn].color == 0 && !platform->cubes[currentLine][currentCollumn].hasHolocron) {
+				platform->cubes[currentLine][currentCollumn].hasHolocron = true;
+				int position = currentCollumn;
+				if (currentLine - 1 < 0) {
+					++currentLine;
+				}
+				float zetmin = platform->cubes[currentLine][currentCollumn].zmin;
+				float zetmax = platform->cubes[currentLine][currentCollumn].zmax;
+				float xmin = platform->cubes[currentLine][currentCollumn].xmin;
+				float xmax = platform->cubes[currentLine][currentCollumn].xmax;
+				auto data = holocron->att;
+				if (k < 10) {
+					if (position & 1) {
+						data.xmin = xmin + 1.f - 0.517f;
+						data.xmax = xmax - 1.f + 0.517;
+						data.ymin = 0.5f;
+						data.ymax = 1.46f;
+						data.zmin = zetmin + 3.f - 0.517f;
+						data.zmax = zetmax - 3.f + 0.517f;
+						data.type = 1;
+						data.collumn = currentCollumn;
+						data.line = currentLine;
+					}
+					else {
+						data.xmin = xmin + 1.f - 0.44f;
+						data.xmax = xmax - 1.f + 0.44;
+						data.ymin = 0.85f;
+						data.ymax = 1.85f;
+						data.zmin = zetmin + 3.f - 0.44f;
+						data.zmax = zetmax - 3.f + 0.44f;
+						data.type = 0;
+						data.collumn = currentCollumn;
+						data.line = currentLine;
+					}
+				}
+
+				if (k >= 10) {
+					data.xmin = xmin + 1.f - 0.44f;
+					data.xmax = xmax - 1.f + 0.44;
+					data.ymin = 0.85f;
+					data.ymax = 1.85f;
+					data.zmin = zetmin + 3.f - 0.44f;
+					data.zmax = zetmax - 3.f + 0.44f;
+					data.type = 2;
+					data.collumn = currentCollumn;
+					data.line = currentLine;
+				}
+				holocron->holocrons.emplace_back(data);
+				is_holocron_hit.emplace_back(false);
+				++k;
+				break;
+			}
+		}
+	}
+}
+
+void Tema3::InitObstacles()
+{
+	for (int k = 0; k < 12;) {
+		auto currentLine = rand() % 50;
+		for (int j = 0; j < 5; ++j) {
+			auto currentCollumn = rand() % 5;
+			if (platform->cubes[currentLine][currentCollumn].color == 0 && !platform->cubes[currentLine][currentCollumn].hasHolocron) {
+				platform->cubes[currentLine][currentCollumn].hasHolocron = true;
+				int position = currentCollumn;
+				if (currentLine - 1 < 0) {
+					++currentLine;
+				}
+				float zetmin = platform->cubes[currentLine][currentCollumn].zmin;
+				float zetmax = platform->cubes[currentLine][currentCollumn].zmax;
+				float xmin = platform->cubes[currentLine][currentCollumn].xmin;
+				float xmax = platform->cubes[currentLine][currentCollumn].xmax;
+				obstacleAttr data;
+				if (k < 10) {
+					data.xmin = xmin + 1.f - 0.75f + 0.25f;
+					data.xmax = xmax - 1.f + 0.75f;
+					data.ymin = 0.6f;
+					data.ymax = 1.25f;
+					data.zmin = zetmin + 3.f;
+					data.zmax = zetmax - 3.f;
+					data.type = position & 1;
+					data.collumn = currentCollumn;
+					data.line = currentLine;
+				}
+
+				if (k >= 10) {
+					data.xmin = xmin + 1.f - 0.517f;
+					data.xmax = xmax - 1.f + 0.517;
+					data.ymin = 0.8f;
+					data.ymax = 1.234f;
+					data.zmin = zetmax - 3.f + 0.517f;
+					data.zmax = data.zmin + 0.96f;
+					data.type = 2;
+					data.collumn = currentCollumn;
+					data.line = currentLine;
+				}
+
+				obstacles.emplace_back(data);
+				is_obstacle_hit.emplace_back(false);
+				++k;
+				break;
+			}
+		}
+	}
 }
 
 void Tema3::Render2DMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, const glm::vec3& color)
