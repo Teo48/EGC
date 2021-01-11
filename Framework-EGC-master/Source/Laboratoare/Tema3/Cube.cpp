@@ -1,6 +1,6 @@
 #pragma once
 #include "Cube.h"
-
+#include "iostream"
 Cube::Cube() {
 	cube = new Mesh("cube");
 	cube->LoadMesh(RESOURCE_PATH::MODELS + "Primitives", "Box.obj");
@@ -50,7 +50,7 @@ void Cube::Init() {
 			cubes[j][i].hasHolocron = false;
 		}
 	}
-
+	
 	for (int i = 0; i < 5; ++i) {
 		cubes[1][i].color = blue;
 	}

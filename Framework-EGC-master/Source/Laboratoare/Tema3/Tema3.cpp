@@ -38,6 +38,7 @@ void Tema3::Init()
 	holocron = new Holocron();
 	quad = new Quad();
 	temple = new Temple();
+	planet = new Planet();
 	camera = new Tema3Camera::Camera();
 	camera->Set(glm::vec3(0, 2, 3.5f), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
 	projectionMatrix = glm::perspective(RADIANS(60), window->props.aspectRatio, 0.01f, 200.0f);
@@ -81,6 +82,18 @@ void Tema3::Init()
 	holocron->Init();
 	InitHolocrons();
 	InitObstacles();
+
+	for (int i = 0; i < 20; ++i) {
+		decorativeAttr data;
+		data.x = -11.f;
+		data.y = 0.f;
+		data.z = i * (-10.f);
+		sithDecorative.emplace_back(data);
+		data.x = 7.5f;
+		data.y = 0.f;
+		data.z = i * (-10.f);
+		jediDecorative.emplace_back(data);
+	}
 }
 
 void Tema3::RenderCubes() {
@@ -122,9 +135,24 @@ void Tema3::Update(float deltaTimeSeconds)
 
 	{
 		glm::mat4 modelMatrix = glm::mat4(1);
-		RenderMeshTexture(temple->getTemple(), shaders["BackgroundShader"], modelMatrix, -1,
+		modelMatrix *= Transform3D::Translate(0.f, 1.f, 0.f);
+		modelMatrix *= Transform3D::Scale(0.1f, 0.1f, 0.1f);
+		RenderMeshTexture(planet->getPlanet(), shaders["BackgroundShader"], modelMatrix, -1,
 			-1, mapTextures["greenJediBackground"], nullptr);
 	}
+
+	for (int i = 0; i < 20; ++i) {
+		glm::mat4 modelMatrix = glm::mat4(1);
+		modelMatrix *= Transform3D::Translate(sithDecorative[i].x, sithDecorative[i].y, sithDecorative[i].z);
+		RenderMeshTexture(temple->getTemple(), shaders["BackgroundShader"], modelMatrix, -1,
+			-1, mapTextures["sithBackground"], nullptr);
+
+		modelMatrix = glm::mat4(1);
+		modelMatrix *= Transform3D::Translate(jediDecorative[i].x, jediDecorative[i].y, jediDecorative[i].z);
+		RenderMeshTexture(temple->getTemple(), shaders["BackgroundShader"], modelMatrix, -1,
+			-1, mapTextures["jediBackground"], nullptr);
+	}
+
 	RenderBackground();
 	RenderScoreBoard();
 	RenderObstacles();
@@ -200,6 +228,14 @@ void Tema3::Update(float deltaTimeSeconds)
 				it.zmin += platformSpeed * deltaTimeSeconds;
 				obstacles[i].zmax += platformSpeed * deltaTimeSeconds;
 				obstacles[i].zmin += platformSpeed * deltaTimeSeconds;
+			}
+
+			for (auto &it : sithDecorative) {
+				it.z += platformSpeed * deltaTimeSeconds;
+			}
+
+			for (auto &it : jediDecorative) {
+				it.z += platformSpeed * deltaTimeSeconds;
 			}
 		
 			reset();
@@ -490,6 +526,27 @@ void Tema3::reset()
 			obstacles[i].zmin = platform->cubes[oit.line][oit.collumn].zmin + 3.f;
 		}
 	}
+
+	if (sithDecorative[0].z > 15.f) {
+		sithDecorative[0].z = sithDecorative[19].z - 10.f;
+	}
+
+	for (int i = 1; i < 20; ++i) {
+		if (sithDecorative[i].z > 15.f) {
+			sithDecorative[i].z = sithDecorative[i - 1].z - 10.f;
+		}
+	}
+
+	if (jediDecorative[0].z > 15.f) {
+		jediDecorative[0].z = jediDecorative[19].z - 10.f;
+	}
+
+	for (int i = 1; i < 20; ++i) {
+		if (jediDecorative[i].z > 15.f) {
+			jediDecorative[i].z = jediDecorative[i - 1].z - 10.f;
+		}
+	}
+
 }
 
 int Tema3::getColumn(const int x)
@@ -531,7 +588,6 @@ void Tema3::RenderPlayer(std::string shaderName)
 	modelMatrix *= Transform3D::Scale(0.55f, 0.55f, 0.55f);
 	RenderSimpleMesh(player->getPlayer(), shaders[shaderName], modelMatrix, animationColor, 0);
 }
-
 
 void Tema3::RenderHeart()
 {

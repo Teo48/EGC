@@ -45,28 +45,19 @@ Temple::Temple()
 		glm::vec3(0, 1, 0)
 	};
 
-	
-	std::vector<glm::vec2> textureCoords
-	{
-		glm::vec2(0.f, 0.f),
-		glm::vec2(1.f,  0.f),
-		glm::vec2(0.25f, 0.43f),
-		glm::vec2(0.75f,  0.43f),
-		glm::vec2(0.3f, 0.53f),
-		glm::vec2(0.7f,  0.53f),
-		glm::vec2(0.4f, 0.75f),
-		glm::vec2(0.6f,  0.75f),
-		glm::vec2(0.43f, 0.86f),
-		glm::vec2(0.56f, 0.86f),
-		glm::vec2(0.5f, 1.f)
+	std::vector<glm::vec2> textureCoords{
+		glm::vec2(0.0f, 0.0f),
+		glm::vec2(1.0f, 0.0f),
+		glm::vec2(0.25f, 0.4301075268817204f),
+		glm::vec2(0.75f, 0.4301075268817204f),
+		glm::vec2(0.3f, 0.5376344086021505f),
+		glm::vec2(0.7f, 0.5376344086021505f),
+		glm::vec2(0.4f, 0.7526881720430108f),
+		glm::vec2(0.6f, 0.7526881720430108f),
+		glm::vec2(0.4375f, 0.8602150537634408f),
+		glm::vec2(0.5625f, 0.8602150537634408f),
+		glm::vec2(0.5f, 1.0f)
 	};
-	
-	/*
-	std::vector<glm::vec2> textureCoords;
-	for (int i = 0; i < 11; ++i) {
-		textureCoords.emplace_back(rand());
-	}
-	*/
 	
 	std::vector<unsigned short> indices =
 	{

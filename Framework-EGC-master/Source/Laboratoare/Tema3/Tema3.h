@@ -11,6 +11,7 @@
 #include "Holocron.h"
 #include "Quad.h"
 #include "Temple.h"
+#include "Planet.h"
 
 class Tema3 : public SimpleScene {
 	public:
@@ -42,6 +43,7 @@ class Tema3 : public SimpleScene {
 		Holocron* holocron;
 		Quad* quad;
 		Temple* temple;
+		Planet* planet;
 		glm::vec3 playerCoordinates;
 		glm::mat4 projectionMatrix;
 		bool checkCollision(const float xmin, const float ymin, const float zmin,
@@ -139,8 +141,15 @@ class Tema3 : public SimpleScene {
 			int line;
 		} obstacleAttr;
 
-		std::vector<obstacleAttr> obstacles;
+		typedef struct decorativeAttr {
+			float x;
+			float y;
+			float z;
+		} decorativeAttr;
 
+		std::vector<obstacleAttr> obstacles;
+		std::vector<decorativeAttr> sithDecorative;
+		std::vector<decorativeAttr> jediDecorative;
 		scoreBarAttr* scoreBarCoord;
 
 		std::unordered_map<std::string, Texture2D*> mapTextures;
