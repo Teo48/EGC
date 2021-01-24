@@ -7,7 +7,6 @@ in vec2 texcoord;
 in vec3 frag_color;
 uniform float Clock;
 
-
 layout(location = 0) out vec4 out_color;
 
 void main()

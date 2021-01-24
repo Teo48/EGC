@@ -58,12 +58,14 @@ class Tema3 : public SimpleScene {
 		void RenderScoreBoard();
 		void RenderHolocrons();
 		void RenderObstacles();
+		void RenderDecoratives();
 		void LoadShaders();
 		void LoadTextures();
 		void InitHolocrons();
 		void InitObstacles();
 		void reset();
 		int getColumn(const int x);
+		float randomFloat(float min, float max);
 		Tema3Camera::Camera* camera;
 		bool isCollision;
 		int collide;
@@ -145,16 +147,26 @@ class Tema3 : public SimpleScene {
 			float x;
 			float y;
 			float z;
+			int id;
 		} decorativeAttr;
 
 		std::vector<obstacleAttr> obstacles;
 		std::vector<decorativeAttr> sithDecorative;
 		std::vector<decorativeAttr> jediDecorative;
+		std::vector<decorativeAttr> left_planets;
+		std::vector<decorativeAttr> right_planets;
 		scoreBarAttr* scoreBarCoord;
 
 		std::unordered_map<std::string, Texture2D*> mapTextures;
 		std::vector<bool> is_holocron_hit;
 		std::vector<bool> is_obstacle_hit;
+		std::unordered_map<int, std::string> planet_id {
+			{0, "planet0"},
+			{1, "planet1"},
+			{2, "planet2"},
+			{3, "planet3"},
+			{4, "planet4"},
+		};
 		void gameOver(const std::string goMessage);
 };
 

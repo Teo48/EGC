@@ -93,6 +93,18 @@ void Tema3::Init()
 		data.y = 0.f;
 		data.z = i * (-10.f);
 		jediDecorative.emplace_back(data);
+		
+		// Set starting position for planets
+		data.x = randomFloat(-23.f, -29.f);
+		data.y = randomFloat(7.f, 14.f);
+		data.z = i * (-20.f);
+		data.id = rand() % 5;
+		left_planets.emplace_back(data);
+		data.x = randomFloat(18.5f, 30.5f);
+		data.y = randomFloat(7.f, 9.f);
+		data.z = i * (-20.f);
+		data.id = rand() % 5;
+		right_planets.emplace_back(data);
 	}
 }
 
@@ -133,32 +145,13 @@ void Tema3::Update(float deltaTimeSeconds)
 		camera->Set(glm::vec3(pos), pos + glm::vec3(0.f, 0.f, -1.f), glm::vec3(0, 1, 0));
 	}
 
-	{
-		glm::mat4 modelMatrix = glm::mat4(1);
-		modelMatrix *= Transform3D::Translate(0.f, 1.f, 0.f);
-		modelMatrix *= Transform3D::Scale(0.1f, 0.1f, 0.1f);
-		RenderMeshTexture(planet->getPlanet(), shaders["BackgroundShader"], modelMatrix, -1,
-			-1, mapTextures["greenJediBackground"], nullptr);
-	}
-
-	for (int i = 0; i < 20; ++i) {
-		glm::mat4 modelMatrix = glm::mat4(1);
-		modelMatrix *= Transform3D::Translate(sithDecorative[i].x, sithDecorative[i].y, sithDecorative[i].z);
-		RenderMeshTexture(temple->getTemple(), shaders["BackgroundShader"], modelMatrix, -1,
-			-1, mapTextures["sithBackground"], nullptr);
-
-		modelMatrix = glm::mat4(1);
-		modelMatrix *= Transform3D::Translate(jediDecorative[i].x, jediDecorative[i].y, jediDecorative[i].z);
-		RenderMeshTexture(temple->getTemple(), shaders["BackgroundShader"], modelMatrix, -1,
-			-1, mapTextures["jediBackground"], nullptr);
-	}
-
 	RenderBackground();
 	RenderScoreBoard();
 	RenderObstacles();
 	RenderHolocrons();
-
 	RenderHeart();
+	RenderDecoratives();
+
 	if (!startGame) {
 		RenderCubes();
 		RenderPlayer("PlayerShader");
@@ -230,12 +223,11 @@ void Tema3::Update(float deltaTimeSeconds)
 				obstacles[i].zmin += platformSpeed * deltaTimeSeconds;
 			}
 
-			for (auto &it : sithDecorative) {
-				it.z += platformSpeed * deltaTimeSeconds;
-			}
-
-			for (auto &it : jediDecorative) {
-				it.z += platformSpeed * deltaTimeSeconds;
+			for (int i = 0; i < 20; ++i) {
+				sithDecorative[i].z += platformSpeed * deltaTimeSeconds;
+				jediDecorative[i].z += platformSpeed * deltaTimeSeconds;
+				left_planets[i].z += platformSpeed * deltaTimeSeconds;
+				right_planets[i].z += platformSpeed * deltaTimeSeconds;
 			}
 		
 			reset();
@@ -338,7 +330,7 @@ void Tema3::Update(float deltaTimeSeconds)
 					break;
 				}
 				const auto& oit = obstacles[i];
-				if (holocronCollisison(oit.xmin - 0.25f, oit.ymin, oit.zmin, oit.xmax - 0.6f, oit.ymax, oit.zmax) && is_obstacle_hit[i] == false) {
+				if (holocronCollisison(oit.xmin - 0.25f, oit.ymin, oit.zmin, oit.xmax - 0.6f, oit.ymax + 0.2f, oit.zmax) && is_obstacle_hit[i] == false) {
 					is_obstacle_hit[i] = true;
 					isDead = true;
 				}
@@ -531,22 +523,35 @@ void Tema3::reset()
 		sithDecorative[0].z = sithDecorative[19].z - 10.f;
 	}
 
-	for (int i = 1; i < 20; ++i) {
-		if (sithDecorative[i].z > 15.f) {
-			sithDecorative[i].z = sithDecorative[i - 1].z - 10.f;
-		}
-	}
-
 	if (jediDecorative[0].z > 15.f) {
 		jediDecorative[0].z = jediDecorative[19].z - 10.f;
 	}
 
+	if (left_planets[0].z > 15.f) {
+		left_planets[0].z = left_planets[19].z - 15.f;
+	}
+
+	if (right_planets[0].z > 15.f) {
+		right_planets[0].z = right_planets[19].z - 15.f;
+	}
+
 	for (int i = 1; i < 20; ++i) {
+		if (sithDecorative[i].z > 15.f) {
+			sithDecorative[i].z = sithDecorative[i - 1].z - 10.f;
+		}
+
 		if (jediDecorative[i].z > 15.f) {
 			jediDecorative[i].z = jediDecorative[i - 1].z - 10.f;
 		}
-	}
 
+		if (left_planets[i].z > 15.f) {
+			left_planets[i].z = left_planets[i - 1].z - 20.f;
+		}
+
+		if (right_planets[i].z > 15.f) {
+			right_planets[i].z = right_planets[i - 1].z - 20.f;
+		}
+	}
 }
 
 int Tema3::getColumn(const int x)
@@ -570,6 +575,12 @@ int Tema3::getColumn(const int x)
 	return 2;
 }
 
+float Tema3::randomFloat(float min, float max)
+{
+	float r = (float)rand() / (float)RAND_MAX;
+	return min + r * (max - min);
+}
+
 void Tema3::RenderFuelBar()
 {
 	glm::mat4 modelMatrix = glm::mat4(1);
@@ -586,7 +597,7 @@ void Tema3::RenderPlayer(std::string shaderName)
 	glm::mat4 modelMatrix = glm::mat4(1);
 	modelMatrix *= Transform3D::Translate(playerCoordinates.x, playerCoordinates.y, playerCoordinates.z);
 	modelMatrix *= Transform3D::Scale(0.55f, 0.55f, 0.55f);
-	RenderSimpleMesh(player->getPlayer(), shaders[shaderName], modelMatrix, animationColor, 0);
+	RenderMeshTexture(player->getPlayer(), shaders[shaderName], modelMatrix, animationColor, 0, mapTextures["deathstar"], nullptr);
 }
 
 void Tema3::RenderHeart()
@@ -710,6 +721,36 @@ void Tema3::RenderObstacles()
 	}
 }
 
+void Tema3::RenderDecoratives()
+{
+	for (int i = 0; i < 20; ++i) {
+		glm::mat4 modelMatrix = glm::mat4(1);
+		modelMatrix *= Transform3D::Translate(sithDecorative[i].x, sithDecorative[i].y, sithDecorative[i].z);
+		RenderMeshTexture(temple->getTemple(), shaders["BackgroundShader"], modelMatrix, -1,
+			-1, mapTextures["sithBackground"], nullptr);
+
+		modelMatrix = glm::mat4(1);
+		modelMatrix *= Transform3D::Translate(jediDecorative[i].x, jediDecorative[i].y, jediDecorative[i].z);
+		RenderMeshTexture(temple->getTemple(), shaders["BackgroundShader"], modelMatrix, -1,
+			-1, mapTextures["jediBackground"], nullptr);
+
+		modelMatrix = glm::mat4(1);
+		modelMatrix *= Transform3D::Translate(left_planets[i].x, left_planets[i].y, left_planets[i].z);
+		modelMatrix *= Transform3D::RotateOY(RADIANS(75.f) + 2.5 * (float)(Engine::GetElapsedTime()));
+		modelMatrix *= Transform3D::Scale(0.3f, 0.3f, 0.3f);
+		RenderMeshTexture(planet->getPlanet(), shaders["BackgroundShader"], modelMatrix, -1,
+			-1, mapTextures[planet_id[left_planets[i].id]], nullptr);
+
+		modelMatrix = glm::mat4(1);
+		modelMatrix *= Transform3D::Translate(right_planets[i].x, right_planets[i].y, right_planets[i].z);
+		modelMatrix *= Transform3D::RotateOY(RADIANS(-75.f) - 2.5 * (float)(Engine::GetElapsedTime()));
+		modelMatrix *= Transform3D::Scale(0.3f, 0.3f, 0.3f);
+
+		RenderMeshTexture(planet->getPlanet(), shaders["BackgroundShader"], modelMatrix, -1,
+			-1, mapTextures[planet_id[right_planets[i].id]], nullptr);
+	}
+}
+
 void Tema3::LoadShaders()
 {
 	{
@@ -803,6 +844,12 @@ void Tema3::LoadTextures()
 
 	{
 		Texture2D* texture = new Texture2D();
+		texture->Load2D((textureLoc + "molten1.jpg").c_str(), GL_REPEAT);
+		mapTextures["molten1"] = texture;
+	}
+
+	{
+		Texture2D* texture = new Texture2D();
 		texture->Load2D((textureLoc + "red.jpg").c_str(), GL_REPEAT);
 		mapTextures["sithHolocron"] = texture;
 	}
@@ -867,6 +914,41 @@ void Tema3::LoadTextures()
 		mapTextures["greenJediBackground"] = texture;
 	}
 
+	{
+		Texture2D* texture = new Texture2D();
+		texture->Load2D((textureLoc + "planet0.png").c_str(), GL_REPEAT);
+		mapTextures["planet0"] = texture;
+	}
+
+	{
+		Texture2D* texture = new Texture2D();
+		texture->Load2D((textureLoc + "planet1.jpg").c_str(), GL_REPEAT);
+		mapTextures["planet1"] = texture;
+	}
+
+	{
+		Texture2D* texture = new Texture2D();
+		texture->Load2D((textureLoc + "planet2.png").c_str(), GL_REPEAT);
+		mapTextures["planet2"] = texture;
+	}
+
+	{
+		Texture2D* texture = new Texture2D();
+		texture->Load2D((textureLoc + "planet3.jpg").c_str(), GL_REPEAT);
+		mapTextures["planet3"] = texture;
+	}
+
+	{
+		Texture2D* texture = new Texture2D();
+		texture->Load2D((textureLoc + "planet4.jpg").c_str(), GL_REPEAT);
+		mapTextures["planet4"] = texture;
+	}
+
+	{
+		Texture2D* texture = new Texture2D();
+		texture->Load2D((textureLoc + "deathstar.png").c_str(), GL_REPEAT);
+		mapTextures["deathstar"] = texture;
+	}
 }
 
 void Tema3::InitHolocrons()
@@ -1058,7 +1140,6 @@ void Tema3::RenderMeshTexture(Mesh* mesh, Shader* shader, const glm::mat4& model
 	// Draw the object
 	glBindVertexArray(mesh->GetBuffers()->VAO);
 	glDrawElements(mesh->GetDrawMode(), static_cast<int>(mesh->indices.size()), GL_UNSIGNED_SHORT, 0);
-
 }
 
 void Tema3::RenderMesh2DTexture(Mesh* mesh, Shader* shader, const glm::mat4& modelMatrix, Texture2D* texture1)
