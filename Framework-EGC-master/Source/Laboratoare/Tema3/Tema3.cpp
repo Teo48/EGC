@@ -167,6 +167,7 @@ void Tema3::Update(float deltaTimeSeconds)
 			fuelBarCoord->fuel = 1.f;
 			isDiformed = false;
 			respawnAnimation = true;
+			trapSpeed = false;
 		}
 
 		if (!isDead) {

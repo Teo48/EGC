@@ -20,6 +20,13 @@ out vec3 frag_normal;
 out vec2 frag_texture;
 out vec3 frag_color;
 
+
+// Pentru functiile de zgomot am folosit: https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
+// Also, sursele voastre de inspiratie din enuntul temei :) 
+// Au ajutat sa inteleg cum sa aplic functiile de zgomot : 
+// http://benchung.com/basic-glsl-displacement-shader-three-js/
+// https://www.clicktorelease.com/blog/vertex-displacement-noise-3d-webgl-glsl-three-js/
+
 vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
 vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
 
@@ -175,9 +182,6 @@ void main()
 	} else if (frag_position.y < 0.f) {
 		frag_color = vec3(1.f, 1.f, 1.f);
 	}
-	
-	//v1
-	
 	
 	if (Color == 1) {
 		gl_Position = Projection * View * Model * vec4(v_position + v_normal * cnoise(

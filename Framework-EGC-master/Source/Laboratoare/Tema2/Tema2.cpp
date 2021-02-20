@@ -208,7 +208,7 @@ void Tema2::Update(float deltaTimeSeconds)
 
 						// If the player hits an yellow platform, he loses fuel
 						if (platform->cubes[i][j].color == 3) {
-							fuelBarCoord->fuel - 0.01f < 0.f ? exit(EXIT_SUCCESS) : fuelBarCoord->fuel -= 0.01f;
+							fuelBarCoord->fuel - 0.01f < 0.f ? isDead = true : fuelBarCoord->fuel -= 0.01f;
 						}
 
 						// If the player hits a red platform, the game is over
@@ -271,7 +271,7 @@ void Tema2::Update(float deltaTimeSeconds)
 			{
 				fuelBarCoord->fuel -= 0.002f * platformSpeed * deltaTimeSeconds;
 				if (fuelBarCoord->fuel < 0.f) {
-					gameOver("\n\t\t\t\tFUEL RAN OUT!\n");
+					isDead = true;
 				}
 				RenderFuelBar();
 			}
@@ -328,12 +328,9 @@ void Tema2::OnInputUpdate(float deltaTime, int mods)
 
 void Tema2::OnKeyPress(int key, int mods)
 {
-	// add key press event
-
 	if (!isJumpTriggered && !inAir) {
 		if (key == GLFW_KEY_SPACE) {
 			isJumpTriggered = true;
-			//inAir = true;
 		}
 	}
 
@@ -499,7 +496,6 @@ void Tema2::RenderSimpleMesh(Mesh* mesh, Shader* shader, const glm::mat4& modelM
 	auto projectionLocation = glGetUniformLocation(shader->GetProgramID(), "Projection");
 
 	// TODO : set shader uniform "Projection" to projectionMatrix
-	//glm::mat4 projectionMatrix = GetSceneCamera()->GetProjectionMatrix();
 
 	glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
